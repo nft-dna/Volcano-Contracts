@@ -12,11 +12,11 @@ async function main(network) {
     const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_FTM_MAINNET, WRAPPED_FTM_TESTNET } = require('../constants');
   
     ////////////
-    const Artion = await ethers.getContractFactory('Artion');
-    const artion = await Artion.deploy(TREASURY_ADDRESS, '2000000000000000000');
+    const Pricy = await ethers.getContractFactory('Pricy');
+    const pricy = await Pricy.deploy(TREASURY_ADDRESS, '2000000000000000000');
   
-    await artion.deployed();  
-    console.log('FantomArtion deployed at', artion.address);
+    await pricy.deployed();  
+    console.log('FantomPricy deployed at', pricy.address);
     ///////////
 
     //////////
@@ -129,7 +129,7 @@ async function main(network) {
     ////////
     const NFTTradable = await ethers.getContractFactory('FantomNFTTradable');
     const nft = await NFTTradable.deploy(
-        'Artion',
+        'Pricy',
         'ART',
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
@@ -144,7 +144,7 @@ async function main(network) {
         'FantomNFTTradablePrivate'
     );
     const nftPrivate = await NFTTradablePrivate.deploy(
-        'IArtion',
+        'IPricy',
         'IART',
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
@@ -247,7 +247,7 @@ async function main(network) {
     
     await auction.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
     
-    await addressRegistry.updateArtion(artion.address);
+    await addressRegistry.updatePricy(pricy.address);
     await addressRegistry.updateAuction(auction.address);
     await addressRegistry.updateMarketplace(marketplace.address);
     await addressRegistry.updateBundleMarketplace(bundleMarketplace.address);

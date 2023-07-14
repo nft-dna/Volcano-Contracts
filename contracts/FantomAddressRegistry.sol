@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract FantomAddressRegistry is Ownable {
     bytes4 private constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
-    /// @notice Artion contract
-    address public artion;
+    /// @notice Pricy contract
+    address public pricy;
 
     /// @notice FantomAuction contract
     address public auction;
@@ -39,15 +39,15 @@ contract FantomAddressRegistry is Ownable {
     address public priceFeed;
 
     /**
-     @notice Update artion contract
+     @notice Update pricy contract
      @dev Only admin
      */
-    function updateArtion(address _artion) external onlyOwner {
+    function updatePricy(address _pricy) external onlyOwner {
         require(
-            IERC165(_artion).supportsInterface(INTERFACE_ID_ERC721),
+            IERC165(_pricy).supportsInterface(INTERFACE_ID_ERC721),
             "Not ERC721"
         );
-        artion = _artion;
+        pricy = _pricy;
     }
 
     /**

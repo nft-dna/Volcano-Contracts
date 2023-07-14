@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 interface IFantomAddressRegistry {
-    function artion() external view returns (address);
+    function pricy() external view returns (address);
 
     function bundleMarketplace() external view returns (address);
 
@@ -655,7 +655,7 @@ contract FantomMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function _isFantomNFT(address _nftAddress) internal view returns (bool) {
         return
-            addressRegistry.artion() == _nftAddress ||
+            addressRegistry.pricy() == _nftAddress ||
             IFantomNFTFactory(addressRegistry.factory()).exists(_nftAddress) ||
             IFantomNFTFactory(addressRegistry.privateFactory()).exists(
                 _nftAddress

@@ -5,12 +5,12 @@ async function main() {
 
   const { TREASURY_ADDRESS } = require('./constants');
 
-  const FNFT = await ethers.getContractFactory('Artion');
+  const FNFT = await ethers.getContractFactory('Pricy');
   const contract = await FNFT.deploy(TREASURY_ADDRESS, '2000000000000000000');
 
   await contract.deployed();
 
-  console.log('FantomArtion deployed at', contract.address);
+  console.log('FantomPricy deployed at', contract.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
