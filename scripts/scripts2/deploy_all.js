@@ -1,6 +1,6 @@
 // to deploy locally
 // run: npx hardhat node on a terminal
-// then run: npx hardhat run --network localhost scripts/12_deploy_all.js
+// then run: npx hardhat run --network localhost scripts/scripts2/deploy_all.js
 async function main(network) {
 
     console.log('network: ', network.name);
@@ -8,15 +8,19 @@ async function main(network) {
     const [deployer] = await ethers.getSigners();
     const deployerAddress = await deployer.getAddress();
     console.log(`Deployer's address: `, deployerAddress);
+    const balance  = await deployer.getBalance();
+    console.log(`Deployer's balance: `, balance);
   
     const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_FTM_MAINNET, WRAPPED_FTM_TESTNET } = require('../constants');
   
     ////////////
-    const Pricy = await ethers.getContractFactory('Pricy');
-    const pricy = await Pricy.deploy(TREASURY_ADDRESS, '2000000000000000000');
+    const Artion = await ethers.getContractFactory('PricyCom');
+    //console.log( ' getContractFactory(PricyCom)');
+    const artion = await Artion.deploy(TREASURY_ADDRESS, '2000000000000000000');
+    //console.log( ' await Artion.deploy');
   
-    await pricy.deployed();  
-    console.log('FantomPricy deployed at', pricy.address);
+    await artion.deployed();  
+    console.log('PricyCom deployed at', artion.address);
     ///////////
 
     //////////
@@ -32,11 +36,11 @@ async function main(network) {
     //////////
 
     /////////
-    const Marketplace = await ethers.getContractFactory('FantomMarketplace');
+    const Marketplace = await ethers.getContractFactory('PricyMarketplace');
     const marketplaceImpl = await Marketplace.deploy();
     await marketplaceImpl.deployed();
 
-    console.log('FantomMarketplace deployed to:', marketplaceImpl.address);
+    console.log('PricyMarketplace deployed to:', marketplaceImpl.address);
     
     const marketplaceProxy = await AdminUpgradeabilityProxyFactory.deploy(
         marketplaceImpl.address,
@@ -46,7 +50,7 @@ async function main(network) {
     await marketplaceProxy.deployed();
     console.log('Marketplace Proxy deployed at ', marketplaceProxy.address);
     const MARKETPLACE_PROXY_ADDRESS = marketplaceProxy.address;
-    const marketplace = await ethers.getContractAt('FantomMarketplace', marketplaceProxy.address);
+    const marketplace = await ethers.getContractAt('PricyMarketplace', marketplaceProxy.address);
     
     await marketplace.initialize(TREASURY_ADDRESS, PLATFORM_FEE);
     console.log('Marketplace Proxy initialized');
@@ -54,12 +58,10 @@ async function main(network) {
     /////////
 
     /////////
-    const BundleMarketplace = await ethers.getContractFactory(
-        'FantomBundleMarketplace'
-      );
+    const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
     const bundleMarketplaceImpl = await BundleMarketplace.deploy();
     await bundleMarketplaceImpl.deployed();
-    console.log('FantomBundleMarketplace deployed to:', bundleMarketplaceImpl.address);
+    console.log('PricyBundleMarketplace deployed to:', bundleMarketplaceImpl.address);
     
     const bundleMarketplaceProxy = await AdminUpgradeabilityProxyFactory.deploy(
         bundleMarketplaceImpl.address,
@@ -69,7 +71,7 @@ async function main(network) {
     await bundleMarketplaceProxy.deployed();
     console.log('Bundle Marketplace Proxy deployed at ', bundleMarketplaceProxy.address);  
     const BUNDLE_MARKETPLACE_PROXY_ADDRESS = bundleMarketplaceProxy.address;
-    const bundleMarketplace = await ethers.getContractAt('FantomBundleMarketplace', bundleMarketplaceProxy.address);
+    const bundleMarketplace = await ethers.getContractAt('PricyBundleMarketplace', bundleMarketplaceProxy.address);
     
     await bundleMarketplace.initialize(TREASURY_ADDRESS, PLATFORM_FEE);
     console.log('Bundle Marketplace Proxy initialized');
@@ -77,10 +79,10 @@ async function main(network) {
     ////////
 
     ////////
-    const Auction = await ethers.getContractFactory('FantomAuction');
+    const Auction = await ethers.getContractFactory('PricyAuction');
     const auctionImpl = await Auction.deploy();
     await auctionImpl.deployed();
-    console.log('FantomAuction deployed to:', auctionImpl.address);
+    console.log('PricyAuction deployed to:', auctionImpl.address);
 
     const auctionProxy = await AdminUpgradeabilityProxyFactory.deploy(
         auctionImpl.address,
@@ -91,7 +93,7 @@ async function main(network) {
     await auctionProxy.deployed();
     console.log('Auction Proxy deployed at ', auctionProxy.address);
     const AUCTION_PROXY_ADDRESS = auctionProxy.address;
-    const auction = await ethers.getContractAt('FantomAuction', auctionProxy.address);
+    const auction = await ethers.getContractAt('PricyAuction', auctionProxy.address);
     
     await auction.initialize(TREASURY_ADDRESS);
     console.log('Auction Proxy initialized');
@@ -99,7 +101,7 @@ async function main(network) {
     ////////
 
     ////////
-    const Factory = await ethers.getContractFactory('FantomNFTFactory');
+    const Factory = await ethers.getContractFactory('PricyERC721Factory');
     const factory = await Factory.deploy(
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
@@ -109,11 +111,9 @@ async function main(network) {
         '50000000000000000000'
     );
     await factory.deployed();
-    console.log('FantomNFTFactory deployed to:', factory.address);
+    console.log('PricyERC721Factory deployed to:', factory.address);
 
-    const PrivateFactory = await ethers.getContractFactory(
-        'FantomNFTFactoryPrivate'
-    );
+    const PrivateFactory = await ethers.getContractFactory('PricyERC721FactoryPrivate');
     const privateFactory = await PrivateFactory.deploy(
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
@@ -123,14 +123,14 @@ async function main(network) {
         '50000000000000000000'
     );
     await privateFactory.deployed();
-    console.log('FantomNFTFactoryPrivate deployed to:', privateFactory.address);
+    console.log('PricyERC721FactoryPrivate deployed to:', privateFactory.address);
     ////////    
 
     ////////
-    const NFTTradable = await ethers.getContractFactory('FantomNFTTradable');
+    const NFTTradable = await ethers.getContractFactory('PricyERC721Tradable');
     const nft = await NFTTradable.deploy(
-        'Pricy',
-        'ART',
+        'PricyERC721',
+        'PRY',
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS,
@@ -138,14 +138,12 @@ async function main(network) {
         TREASURY_ADDRESS
     );
     await nft.deployed();
-    console.log('FantomNFTTradable deployed to:', nft.address);
+    console.log('PricyERC721Tradable deployed to:', nft.address);
 
-    const NFTTradablePrivate = await ethers.getContractFactory(
-        'FantomNFTTradablePrivate'
-    );
+    const NFTTradablePrivate = await ethers.getContractFactory('PricyERC721TradablePrivate');
     const nftPrivate = await NFTTradablePrivate.deploy(
-        'IPricy',
-        'IART',
+        'IPricyERC721',
+        'IPRY',
         AUCTION_PROXY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS,
@@ -153,71 +151,69 @@ async function main(network) {
         TREASURY_ADDRESS
     );
     await nftPrivate.deployed();
-    console.log('FantomNFTTradablePrivate deployed to:', nftPrivate.address);
+    console.log('PricyERC721TradablePrivate deployed to:', nftPrivate.address);
     ////////
 
     ////////
-    const TokenRegistry = await ethers.getContractFactory('FantomTokenRegistry');
+    const TokenRegistry = await ethers.getContractFactory('PricyTokenRegistry');
     const tokenRegistry = await TokenRegistry.deploy();
 
     await tokenRegistry.deployed();
 
-    console.log('FantomTokenRegistry deployed to', tokenRegistry.address);
+    console.log('PricyTokenRegistry deployed to', tokenRegistry.address);
     ////////
 
     ////////
-    const AddressRegistry = await ethers.getContractFactory('FantomAddressRegistry');
+    const AddressRegistry = await ethers.getContractFactory('PricyAddressRegistry');
     const addressRegistry = await AddressRegistry.deploy();
 
     await addressRegistry.deployed();
 
-    console.log('FantomAddressRegistry deployed to', addressRegistry.address);
-    const FANTOM_ADDRESS_REGISTRY = addressRegistry.address;
+    console.log('PricyAddressRegistry deployed to', addressRegistry.address);
+    const PRICYCOM_ADDRESS_REGISTRY = addressRegistry.address;
     ////////
 
     ////////
-    const PriceFeed = await ethers.getContractFactory('FantomPriceFeed');
+    const PriceFeed = await ethers.getContractFactory('PricyPriceFeed');
     const WRAPPED_FTM = network.name === 'mainnet' ? WRAPPED_FTM_MAINNET : WRAPPED_FTM_TESTNET;
     const priceFeed = await PriceFeed.deploy(
-      FANTOM_ADDRESS_REGISTRY,
+      PRICYCOM_ADDRESS_REGISTRY,
       WRAPPED_FTM
     );
   
     await priceFeed.deployed();
   
-    console.log('FantomPriceFeed deployed to', priceFeed.address);
+    console.log('PricyPriceFeed deployed to', priceFeed.address);
     ////////
 
     ////////
-    const ArtTradable = await ethers.getContractFactory('FantomArtTradable');
+    const ArtTradable = await ethers.getContractFactory('PricyERC1155Tradable');
     const artTradable = await ArtTradable.deploy(
-        'FantomArt',
-        'FART',
+        'PricyERC1155',
+        'PRCY',
         '20000000000000000000',
         TREASURY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS
     );
     await artTradable.deployed();
-    console.log('FantomArtTradable deployed to:', artTradable.address);
+    console.log('PricyERC1155Tradable deployed to:', artTradable.address);
 
-    const ArtTradablePrivate = await ethers.getContractFactory(
-        'FantomArtTradablePrivate'
-    );
+    const ArtTradablePrivate = await ethers.getContractFactory('PricyERC1155TradablePrivate');
     const artTradablePrivate = await ArtTradablePrivate.deploy(
-        'FantomArt',
-        'FART',
+        'IPricyERC1155',
+        'IPRCY',
         '20000000000000000000',
         TREASURY_ADDRESS,
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS
     );
     await artTradablePrivate.deployed();
-    console.log('FantomArtTradablePrivate deployed to:', artTradablePrivate.address);
+    console.log('PricyERC1155TradablePrivate deployed to:', artTradablePrivate.address);
     ////////
 
     ////////
-    const ArtFactory = await ethers.getContractFactory('FantomArtFactory');
+    const ArtFactory = await ethers.getContractFactory('PricyERC1155Factory');
     const artFactory = await ArtFactory.deploy(
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS,
@@ -226,11 +222,9 @@ async function main(network) {
         '10000000000000000000'
      );
     await artFactory.deployed();
-    console.log('FantomArtFactory deployed to:', artFactory.address);
+    console.log('PricyERC1155Factory deployed to:', artFactory.address);
 
-    const ArtFactoryPrivate = await ethers.getContractFactory(
-        'FantomArtFactoryPrivate'
-    );
+    const ArtFactoryPrivate = await ethers.getContractFactory('PricyERC1155FactoryPrivate');
     const artFactoryPrivate = await ArtFactoryPrivate.deploy(
         MARKETPLACE_PROXY_ADDRESS,
         BUNDLE_MARKETPLACE_PROXY_ADDRESS,
@@ -239,15 +233,15 @@ async function main(network) {
         '10000000000000000000'
     );
     await artFactoryPrivate.deployed();
-    console.log('FantomArtFactoryPrivate deployed to:', artFactoryPrivate.address);
+    console.log('PricyERC1155FactoryPrivate deployed to:', artFactoryPrivate.address);
     ////////
     
-    await marketplace.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);   
-    await bundleMarketplace.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
+    await marketplace.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);   
+    await bundleMarketplace.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);
     
-    await auction.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
+    await auction.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);
     
-    await addressRegistry.updatePricy(pricy.address);
+    await addressRegistry.updatePricyCom(artion.address);
     await addressRegistry.updateAuction(auction.address);
     await addressRegistry.updateMarketplace(marketplace.address);
     await addressRegistry.updateBundleMarketplace(bundleMarketplace.address);
@@ -257,6 +251,9 @@ async function main(network) {
     await addressRegistry.updateArtFactory(artFactory.address);   
 
     await tokenRegistry.add(WRAPPED_FTM);
+    
+    const finalbalance = await deployer.getBalance();
+    console.log(`Deployer's balance: `, finalbalance);
 
   }
   

@@ -4,11 +4,11 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IFantomAddressRegistry {
+interface IPricyAddressRegistry {
     function tokenRegistry() external view returns (address);
 }
 
-interface IFantomTokenRegistry {
+interface IPricyTokenRegistry {
     function enabled(address) external returns (bool);
 }
 
@@ -18,11 +18,11 @@ interface IOracle {
     function latestAnswer() external view returns (int256);
 }
 
-contract FantomPriceFeed is Ownable {
+contract PricyPriceFeed is Ownable {
     /// @notice keeps track of oracles for each tokens
     mapping(address => address) public oracles;
 
-    /// @notice fantom address registry contract
+    /// @notice Pricy address registry contract
     address public addressRegistry;
 
     /// @notice wrapped FTM contract
@@ -43,8 +43,8 @@ contract FantomPriceFeed is Ownable {
         external
         onlyOwner
     {
-        IFantomTokenRegistry tokenRegistry = IFantomTokenRegistry(
-            IFantomAddressRegistry(addressRegistry).tokenRegistry()
+        IPricyTokenRegistry tokenRegistry = IPricyTokenRegistry(
+            IPricyAddressRegistry(addressRegistry).tokenRegistry()
         );
         require(tokenRegistry.enabled(_token), "invalid token");
         require(oracles[_token] == address(0), "oracle already set");

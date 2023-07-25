@@ -27,19 +27,14 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: `https://rpcapi.fantom.network`,
-      chainId: 250,
+      url: `https://eth.meowrpc.com`,
+      chainId: 1,
       accounts: [`0x${PRIVATE_KEY}`]
     },
     testnet: {
-      url: `https://rpcapi-tracing.testnet.fantom.network`,
-      chainId: 4002,
+      url: `https://ethereum-goerli.publicnode.com`,
+      chainId: 5,
       accounts: [`0x${PRIVATE_KEY}`]
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
-      chainId: 3,
-      accounts: [`0x${PRIVATE_KEY}`],
     },
     coverage: {
       url: 'http://localhost:8555',

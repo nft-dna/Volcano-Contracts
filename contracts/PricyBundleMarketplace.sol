@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-interface IFantomAddressRegistry {
+interface IPricyAddressRegistry {
     function auction() external view returns (address);
 
     function marketplace() external view returns (address);
@@ -21,7 +21,7 @@ interface IFantomAddressRegistry {
     function tokenRegistry() external view returns (address);
 }
 
-interface IFantomMarketplace {
+interface IPricyMarketplace {
     function validateItemSold(
         address,
         uint256,
@@ -32,11 +32,11 @@ interface IFantomMarketplace {
     function getPrice(address) external view returns (int256);
 }
 
-interface IFantomTokenRegistry {
+interface IPricyTokenRegistry {
     function enabled(address) external returns (bool);
 }
 
-contract FantomBundleMarketplace is
+contract PricyBundleMarketplace is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
@@ -124,7 +124,7 @@ contract FantomBundleMarketplace is
     address payable public feeReceipient;
 
     /// @notice Address registry
-    IFantomAddressRegistry public addressRegistry;
+    IPricyAddressRegistry public addressRegistry;
 
     modifier onlyContract() {
         require(
@@ -203,7 +203,7 @@ contract FantomBundleMarketplace is
         require(
             _payToken == address(0) ||
                 (tokenRegistry != address(0) &&
-                    IFantomTokenRegistry(tokenRegistry).enabled(_payToken)),
+                    IPricyTokenRegistry(tokenRegistry).enabled(_payToken)),
             "invalid pay token"
         );
 
@@ -285,7 +285,7 @@ contract FantomBundleMarketplace is
         require(
             _payToken == address(0) ||
                 (tokenRegistry != address(0) &&
-                    IFantomTokenRegistry(tokenRegistry).enabled(_payToken)),
+                    IPricyTokenRegistry(tokenRegistry).enabled(_payToken)),
             "invalid pay token"
         );
 
@@ -362,14 +362,14 @@ contract FantomBundleMarketplace is
             );
             require(
                 feeTransferSuccess,
-                "FantomMarketplace: Fee transfer failed"
+                "PricyMarketplace: Fee transfer failed"
             );
             (bool ownerTransferSuccess, ) = owner.call{
                 value: price.sub(feeAmount)
             }("");
             require(
                 ownerTransferSuccess,
-                "FantomMarketplace: Owner transfer failed"
+                "PricyMarketplace: Owner transfer failed"
             );
         } else {
             IERC20(_payToken).safeTransferFrom(
@@ -401,7 +401,7 @@ contract FantomBundleMarketplace is
                     bytes("")
                 );
             }
-            IFantomMarketplace(addressRegistry.marketplace()).validateItemSold(
+            IPricyMarketplace(addressRegistry.marketplace()).validateItemSold(
                 listing.nfts[i],
                 listing.tokenIds[i],
                 owner,
@@ -419,7 +419,7 @@ contract FantomBundleMarketplace is
             _msgSender(),
             _bundleID,
             _payToken,
-            IFantomMarketplace(addressRegistry.marketplace()).getPrice(_payToken),
+            IPricyMarketplace(addressRegistry.marketplace()).getPrice(_payToken),
             price
         );
         emit OfferCanceled(_msgSender(), _bundleID);
@@ -504,7 +504,7 @@ contract FantomBundleMarketplace is
                     bytes("")
                 );
             }
-            IFantomMarketplace(addressRegistry.marketplace()).validateItemSold(
+            IPricyMarketplace(addressRegistry.marketplace()).validateItemSold(
                 listing.nfts[i],
                 listing.tokenIds[i],
                 owners[bundleID],
@@ -522,7 +522,7 @@ contract FantomBundleMarketplace is
             _creator,
             _bundleID,
             address(offer.payToken),
-            IFantomMarketplace(addressRegistry.marketplace()).getPrice(address(offer.payToken)),
+            IPricyMarketplace(addressRegistry.marketplace()).getPrice(address(offer.payToken)),
             offer.price
         );
         emit OfferCanceled(_creator, _bundleID);
@@ -552,11 +552,11 @@ contract FantomBundleMarketplace is
     }
 
     /**
-     @notice Update FantomAddressRegistry contract
+     @notice Update PricyAddressRegistry contract
      @dev Only admin
      */
     function updateAddressRegistry(address _registry) external onlyOwner {
-        addressRegistry = IFantomAddressRegistry(_registry);
+        addressRegistry = IPricyAddressRegistry(_registry);
     }
 
     /**

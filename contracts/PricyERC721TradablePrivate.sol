@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title FantomNFTTradablePrivate
- * FantomNFTTradablePrivate - ERC721 contract that whitelists a trading address, and has minting functionality.
+ * @title PricyERC721TradablePrivate
+ * PricyERC721TradablePrivate - ERC721 contract that whitelists a trading address, and has minting functionality.
  */
-contract FantomNFTTradablePrivate is ERC721, Ownable {
+contract PricyERC721TradablePrivate is ERC721, Ownable {
     /// @dev Events of the contract
     event Minted(
         uint256 tokenId,
@@ -133,7 +133,7 @@ contract FantomNFTTradablePrivate is ERC721, Ownable {
     }
 
     /**
-     * Override isApprovedForAll to whitelist Fantom contracts to enable gas-less listings.
+     * Override isApprovedForAll to whitelist Pricy contracts to enable gas-less listings.
      */
     function isApprovedForAll(address owner, address operator)
         override
@@ -141,7 +141,7 @@ contract FantomNFTTradablePrivate is ERC721, Ownable {
         view
         returns (bool)
     {
-        // Whitelist Fantom auction, marketplace, bundle marketplace contracts for easy trading.
+        // Whitelist Pricy auction, marketplace, bundle marketplace contracts for easy trading.
         if (
             auction == operator ||
             marketplace == operator ||
@@ -154,7 +154,7 @@ contract FantomNFTTradablePrivate is ERC721, Ownable {
     }
 
     /**
-     * Override _isApprovedOrOwner to whitelist Fantom contracts to enable gas-less listings.
+     * Override _isApprovedOrOwner to whitelist Pricy contracts to enable gas-less listings.
      */
     function _isApprovedOrOwner(address spender, uint256 tokenId) override internal view returns (bool) {
         require(_exists(tokenId), "ERC721: operator query for nonexistent token");

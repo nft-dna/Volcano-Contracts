@@ -5,53 +5,53 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FantomAddressRegistry is Ownable {
+contract PricyAddressRegistry is Ownable {
     bytes4 private constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
-    /// @notice Pricy contract
-    address public pricy;
+    /// @notice PricyCom contract
+    address public pricycom;
 
-    /// @notice FantomAuction contract
+    /// @notice PricyAuction contract
     address public auction;
 
-    /// @notice FantomMarketplace contract
+    /// @notice PricyMarketplace contract
     address public marketplace;
 
-    /// @notice FantomBundleMarketplace contract
+    /// @notice PricyBundleMarketplace contract
     address public bundleMarketplace;
 
-    /// @notice FantomNFTFactory contract
+    /// @notice PricyNFTFactory contract
     address public factory;
 
-    /// @notice FantomNFTFactoryPrivate contract
+    /// @notice PricyNFTFactoryPrivate contract
     address public privateFactory;
 
-    /// @notice FantomArtFactory contract
+    /// @notice PricyComFactory contract
     address public artFactory;
 
-    /// @notice FantomArtFactoryPrivate contract
+    /// @notice PricyComFactoryPrivate contract
     address public privateArtFactory;
 
-    /// @notice FantomTokenRegistry contract
+    /// @notice PricyTokenRegistry contract
     address public tokenRegistry;
 
-    /// @notice FantomPriceFeed contract
+    /// @notice PricyPriceFeed contract
     address public priceFeed;
 
     /**
-     @notice Update pricy contract
+     @notice Update PricyCom contract
      @dev Only admin
      */
-    function updatePricy(address _pricy) external onlyOwner {
+    function updatePricyCom(address _pricycom) external onlyOwner {
         require(
-            IERC165(_pricy).supportsInterface(INTERFACE_ID_ERC721),
+            IERC165(_pricycom).supportsInterface(INTERFACE_ID_ERC721),
             "Not ERC721"
         );
-        pricy = _pricy;
+        pricycom = _pricycom;
     }
 
     /**
-     @notice Update FantomAuction contract
+     @notice Update PricyAuction contract
      @dev Only admin
      */
     function updateAuction(address _auction) external onlyOwner {
@@ -59,7 +59,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomMarketplace contract
+     @notice Update PricyMarketplace contract
      @dev Only admin
      */
     function updateMarketplace(address _marketplace) external onlyOwner {
@@ -67,7 +67,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomBundleMarketplace contract
+     @notice Update PricyBundleMarketplace contract
      @dev Only admin
      */
     function updateBundleMarketplace(address _bundleMarketplace)
@@ -78,7 +78,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomNFTFactory contract
+     @notice Update PricyNFTFactory contract
      @dev Only admin
      */
     function updateNFTFactory(address _factory) external onlyOwner {
@@ -86,7 +86,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomNFTFactoryPrivate contract
+     @notice Update PricyNFTFactoryPrivate contract
      @dev Only admin
      */
     function updateNFTFactoryPrivate(address _privateFactory)
@@ -97,7 +97,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomArtFactory contract
+     @notice Update PricyArtFactory contract
      @dev Only admin
      */
     function updateArtFactory(address _artFactory) external onlyOwner {
@@ -105,7 +105,7 @@ contract FantomAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update FantomArtFactoryPrivate contract
+     @notice Update PricyArtFactoryPrivate contract
      @dev Only admin
      */
     function updateArtFactoryPrivate(address _privateArtFactory)

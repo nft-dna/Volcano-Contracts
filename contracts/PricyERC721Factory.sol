@@ -3,20 +3,20 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./FantomNFTTradable.sol";
+import "./PricyERC721Tradable.sol";
 
-contract FantomNFTFactory is Ownable {
+contract PricyERC721Factory is Ownable {
     /// @dev Events of the contract
     event ContractCreated(address creator, address nft);
     event ContractDisabled(address caller, address nft);
 
-    /// @notice Fantom auction contract address;
+    /// @notice Pricy auction contract address;
     address public auction;
 
-    /// @notice Fantom marketplace contract address;
+    /// @notice Pricy marketplace contract address;
     address public marketplace;
 
-    /// @notice Fantom bundle marketplace contract address;
+    /// @notice Pricy bundle marketplace contract address;
     address public bundleMarketplace;
 
     /// @notice NFT mint fee
@@ -110,7 +110,7 @@ contract FantomNFTFactory is Ownable {
         feeRecipient = _feeRecipient;
     }
 
-    /// @notice Method for deploy new FantomNFTTradable contract
+    /// @notice Method for deploy new PricyERC721Tradable contract
     /// @param _name Name of NFT contract
     /// @param _symbol Symbol of NFT contract
     function createNFTContract(string memory _name, string memory _symbol)
@@ -122,7 +122,7 @@ contract FantomNFTFactory is Ownable {
         (bool success,) = feeRecipient.call{value: msg.value}("");
         require(success, "Transfer failed");
 
-        FantomNFTTradable nft = new FantomNFTTradable(
+        PricyERC721Tradable nft = new PricyERC721Tradable(
             _name,
             _symbol,
             auction,
@@ -137,7 +137,7 @@ contract FantomNFTFactory is Ownable {
         return address(nft);
     }
 
-    /// @notice Method for registering existing FantomNFTTradable contract
+    /// @notice Method for registering existing PricyERC721Tradable contract
     /// @param  tokenContractAddress Address of NFT contract
     function registerTokenContract(address tokenContractAddress)
         external
@@ -149,7 +149,7 @@ contract FantomNFTFactory is Ownable {
         emit ContractCreated(_msgSender(), tokenContractAddress);
     }
 
-    /// @notice Method for disabling existing FantomNFTTradable contract
+    /// @notice Method for disabling existing PricyERC721Tradable contract
     /// @param  tokenContractAddress Address of NFT contract
     function disableTokenContract(address tokenContractAddress)
         external

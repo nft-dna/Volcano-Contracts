@@ -14,12 +14,12 @@ contract ProxyRegistry {
 }
 
 /**
- * @title FantomArtTradablePrivate
- * FantomArtTradablePrivate - ERC1155 contract that whitelists an operator address, 
+ * @title PricyERC1155TradablePrivate
+ * PricyERC1155TradablePrivate - ERC1155 contract that whitelists an operator address, 
  * has mint functionality, and supports useful standards from OpenZeppelin,
   like _exists(), name(), symbol(), and totalSupply()
  */
-contract FantomArtTradablePrivate is
+contract PricyERC1155TradablePrivate is
     ERC1155,
     ERC1155MintBurn,
     ERC1155Metadata,
@@ -41,9 +41,9 @@ contract FantomArtTradablePrivate is
     uint256 public platformFee;
     // Platform fee receipient
     address payable public feeReceipient;
-    // Fantom Marketplace contract
+    // Pricy Marketplace contract
     address marketplace;
-    // Fantom Bundle Marketplace contract
+    // Pricy Bundle Marketplace contract
     address bundleMarketplace;
 
     constructor(
@@ -112,7 +112,7 @@ contract FantomArtTradablePrivate is
     }
 
     /**
-     * Override isApprovedForAll to whitelist Fantom contracts to enable gas-less listings.
+     * Override isApprovedForAll to whitelist Pricy contracts to enable gas-less listings.
      */
     function isApprovedForAll(address _owner, address _operator)
         public
@@ -120,7 +120,7 @@ contract FantomArtTradablePrivate is
         override
         returns (bool isOperator)
     {
-        // Whitelist Fantom marketplace, bundle marketplace contracts for easy trading.
+        // Whitelist Pricy marketplace, bundle marketplace contracts for easy trading.
         if (marketplace == _operator || bundleMarketplace == _operator) {
             return true;
         }

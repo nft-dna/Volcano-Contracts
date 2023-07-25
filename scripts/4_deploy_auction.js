@@ -5,10 +5,10 @@ const {
 } = require('./constants');
 
 async function main() {
-  const Auction = await ethers.getContractFactory('FantomAuction');
+  const Auction = await ethers.getContractFactory('PricyAuction');
   const auctionImpl = await Auction.deploy();
   await auctionImpl.deployed();
-  console.log('FantomAuction deployed to:', auctionImpl.address);
+  console.log('PricyAuction deployed to:', auctionImpl.address);
 
   // const AdminUpgradeabilityProxyFactory = await ethers.getContractFactory(
   //   'AdminUpgradeabilityProxy'
@@ -32,7 +32,7 @@ async function main() {
   // console.log('Auction Proxy deployed at ', auctionProxy.address);
 
   // const auction = await ethers.getContractAt(
-  //   'FantomAuction',
+  //   'PricyAuction',
   //   auctionProxy.address
   // );
   // await auction.initialize(TREASURY_ADDRESS);

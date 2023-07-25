@@ -2,9 +2,9 @@
 
 pragma solidity 0.6.12;
 
-import "../FantomAuction.sol";
+import "../PricyAuction.sol";
 
-contract MockFantomAuction is FantomAuction {
+contract MockPricyAuction is PricyAuction {
     uint256 public time;
 
     function setTime(uint256 t) public {

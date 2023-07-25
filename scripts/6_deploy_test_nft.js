@@ -6,10 +6,10 @@ const {
 } = require('./constants');
 
 async function main() {
-  const NFTTradable = await ethers.getContractFactory('FantomNFTTradable');
+  const NFTTradable = await ethers.getContractFactory('PricyERC721Tradable');
   const nft = await NFTTradable.deploy(
-    'Pricy',
-    'ART',
+    'PricyERC721',
+    'PRY',
     AUCTION,
     MARKETPLACE,
     BUNDLE_MARKETPLACE,
@@ -17,14 +17,12 @@ async function main() {
     TREASURY_ADDRESS
   );
   await nft.deployed();
-  console.log('FantomNFTTradable deployed to:', nft.address);
+  console.log('PricyERC721Tradable deployed to:', nft.address);
 
-  const NFTTradablePrivate = await ethers.getContractFactory(
-    'FantomNFTTradablePrivate'
-  );
+  const NFTTradablePrivate = await ethers.getContractFactory('PricyERC721TradablePrivate');
   const nftPrivate = await NFTTradablePrivate.deploy(
-    'IPricy',
-    'IART',
+    'PricyERC721',
+    'IPRY',
     AUCTION,
     MARKETPLACE,
     BUNDLE_MARKETPLACE,
@@ -32,7 +30,7 @@ async function main() {
     TREASURY_ADDRESS
   );
   await nftPrivate.deployed();
-  console.log('FantomNFTTradablePrivate deployed to:', nftPrivate.address);
+  console.log('PricyERC721TradablePrivate deployed to:', nftPrivate.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
