@@ -1,1 +1,1 @@
-# Smart contracts for Fantom Pricy Marketplace
+# Smart contracts for Pricy Marketplace
