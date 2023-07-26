@@ -1,5 +1,6 @@
 const {
   BN,
+  ether,
   constants,
   expectEvent,
   expectRevert,
@@ -8,7 +9,7 @@ const { ZERO_ADDRESS } = constants
 
 const { expect } = require('chai')
 
-const PricyNifty = artifacts.require('PricyERC721Tradable')
+const PricyCom = artifacts.require('PricyCom')
 
 contract('Core ERC721 tests for PricyComNifty', function ([
   owner,
@@ -19,19 +20,19 @@ contract('Core ERC721 tests for PricyComNifty', function ([
   other,
   artist,
 ]) {
-  const name = 'PricyCom NFT'
-  const symbol = 'PNFT'
+  const name = 'PricyCom'
+  const symbol = 'PRY'
 
   const firstTokenId = new BN('1')
   const secondTokenId = new BN('2')
   const nonExistentTokenId = new BN('99')
-
+  const mintFee = new BN('5'); // mintFee
   const RECEIVER_MAGIC_VALUE = '0x150b7a02'
 
   const randomTokenURI = 'ipfs'
 
   beforeEach(async function () {
-    this.token = await PricyNifty.new({ from: owner })
+    this.token = await PricyCom.new(owner, mintFee)
   })
 
   describe('metadata', function () {
@@ -45,7 +46,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
     describe('token URI', function () {
       beforeEach(async function () {
-        await this.token.mint(owner, randomTokenURI, { from: owner })
+        await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
       })
 
       const sampleUri = 'mock://mytoken'
@@ -71,8 +72,8 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
   context('with minted tokens', function () {
     beforeEach(async function () {
-      await this.token.mint(owner, randomTokenURI, { from: owner })
-      await this.token.mint(owner, randomTokenURI, { from: owner })
+      await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
+      await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
       this.toWhom = other // default to other for toWhom in context-dependent tests
     })
 
@@ -775,16 +776,14 @@ contract('Core ERC721 tests for PricyComNifty', function ([
   describe('_mint(address, uint256)', function () {
     it('reverts with a null destination address', async function () {
       await expectRevert(
-        this.token.mint(ZERO_ADDRESS, randomTokenURI, { from: owner }),
+        this.token.mint(ZERO_ADDRESS, randomTokenURI, { from: owner, value: ether(mintFee) }),
         'ERC721: mint to the zero address',
       )
     })
 
     context('with minted token', async function () {
       beforeEach(async function () {
-        ;({ logs: this.logs } = await this.token.mint(owner, randomTokenURI, {
-          from: owner,
-        }))
+        ;({ logs: this.logs } = await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) }))
       })
 
       it('emits a Transfer event', function () {
@@ -824,8 +823,8 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
     context('with minted tokens', function () {
       beforeEach(async function () {
-        await this.token.mint(owner, randomTokenURI, { from: owner })
-        await this.token.mint(owner, randomTokenURI, { from: owner })
+        await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
+        await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
       })
 
       context('with burnt token', function () {

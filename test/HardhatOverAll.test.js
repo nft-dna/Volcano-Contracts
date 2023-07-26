@@ -1,6 +1,8 @@
 // npx hardhat test .\test\HardhatOverAll.test.js --network localhost; run first in another shell: npx hardhat node
 //   on Error: Cannot find module '@openzeppelin/test-helpers'
+// if you prefer instead of MockPricyAuction ypu could install
 //     npm install @openzeppelin/test-helpers
+// and get\increase timestamps, i.e.: await helpers.time.increase(3600);
 const {
     expectRevert,
     expectEvent,
