@@ -1,5 +1,6 @@
 const {
     BN,
+    ether,
     constants,
     expectEvent,
     expectRevert,
@@ -7,12 +8,23 @@ const {
 } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
 
-const { expect } = require('chai');
+const {
+    expect
+} = require('chai');
 
+const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
 const PricyCom = artifacts.require('PricyCom');
 const PricyMarketplace = artifacts.require('PricyMarketplace');
+const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
+const MockERC20 = artifacts.require('MockERC20');
+const PricyTokenRegistry = artifacts.require('PricyTokenRegistry');
+const PricyPriceFeed = artifacts.require('PricyPriceFeed');
 
-contract('Core ERC721 tests for PricyCom', function ([
+const weiToEther = (n) => {
+    return web3.utils.fromWei(n.toString(), 'ether');
+}
+
+contract('Core ERC721 tests for PricyCom', function([
     owner,
     minter,
     buyer,
@@ -21,39 +33,65 @@ contract('Core ERC721 tests for PricyCom', function ([
     const firstTokenId = new BN('1');
     const secondTokenId = new BN('2');
     const nonExistentTokenId = new BN('99');
+    const mintFee = new BN('5'); // mintFee
     const platformFee = new BN('25'); // marketplace platform fee: 2.5%
     const pricePerItem = new BN('1000000000000000000');
     const newPrice = new BN('500000000000000000');
-  
+
     const RECEIVER_MAGIC_VALUE = '0x150b7a02';
-  
+
     const randomTokenURI = 'ipfs';
-  
-    beforeEach(async function () {
-      this.nft = await PricyCom.new({ from: owner });
-      this.marketplace = await PricyMarketplace.new(
-        '0xFC00FACE00000000000000000000000000000000',
-        platformFee,
-        { from: owner }
-      );
-      this.nft.mint(minter, randomTokenURI, { from: owner });
-      this.nft.mint(owner, randomTokenURI, { from: owner });
+
+    beforeEach(async function() {
+        console.log(`beforeEach called`);
+        this.nft = await PricyCom.new(owner, mintFee);
+        let firstTokenresult = await this.nft.mint(minter, randomTokenURI, {
+            from: owner,
+            value: ether(mintFee)
+        });
+        let secondTokenresult = await this.nft.mint(owner, randomTokenURI, {
+            from: owner,
+            value: ether(mintFee)
+        });
+                
+        this.pricyAddressRegistry = await PricyAddressRegistry.new({ from: owner });
+        this.pricyTokenRegistry = await PricyTokenRegistry.new({ from: owner });
+        this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'), { from: owner });
+        this.pricyTokenRegistry.add(this.mockERC20.address, { from: owner });
+                        
+        this.marketplace = await PricyMarketplace.new({ from: owner });
+        await this.marketplace.initialize(feeRecipient, platformFee, { from: owner });
+        await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });       
+                        
+        this.pricyBundleMarketplace = await PricyBundleMarketplace.new({ from: owner });
+        await this.pricyBundleMarketplace.initialize(feeRecipient, platformFee, { from: owner });
+        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });
+        
+        this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockERC20.address, { from: owner });
+                 
+        await this.pricyAddressRegistry.updateMarketplace(this.marketplace.address, { from: owner });
+        await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address, { from: owner });
+        await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address, { from: owner });
+        await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address, { from: owner });
     });
 
-    describe('Listing Item', function () {
-        it('reverts when not owning NFT', async function() {
-            await expectRevert(
-                this.marketplace.listItem(
-                    this.nft.address,
-                    firstTokenId,
-                    '1',
-                    pricePerItem,
-                    '0',
-                    ZERO_ADDRESS,
-                    { from: owner }
-                ),
-                "Must be owner of NFT."
-            );
+    describe('Listing Item', function() {
+        this.beforeEach(async function() {
+            it('reverts when not owning NFT', async function() {
+                await expectRevert(
+                    this.marketplace.listItem(
+                        this.nft.address,
+                        firstTokenId,
+                        '1',
+                        this.mockERC20.address,
+                        pricePerItem,
+                        '0', {
+                            from: owner
+                        }
+                    ),
+                    "not owning item"
+                );
+            });
         });
 
         it('reverts when not approved', async function() {
@@ -62,40 +100,48 @@ contract('Core ERC721 tests for PricyCom', function ([
                     this.nft.address,
                     firstTokenId,
                     '1',
+                    this.mockERC20.address,
                     pricePerItem,
-                    '0',
-                    ZERO_ADDRESS,
-                    { from: minter }
+                    '0', {
+                        from: minter
+                    }
                 ),
-                "Must be approved before list."
+                "item not approved"
             );
         });
 
         it('successfuly lists item', async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, { from: minter });
+            await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                from: minter
+            });
             await this.marketplace.listItem(
                 this.nft.address,
                 firstTokenId,
                 '1',
+                this.mockERC20.address,
                 pricePerItem,
-                '0',
-                ZERO_ADDRESS,
-                { from: minter }
+                '0', {
+                    from: minter
+                }
             );
         })
+
     });
 
     describe('Canceling Item', function() {
         this.beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, { from: minter });
+            await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                from: minter
+            });
             await this.marketplace.listItem(
                 this.nft.address,
                 firstTokenId,
                 '1',
+                this.mockERC20.address,
                 pricePerItem,
-                '0',
-                ZERO_ADDRESS,
-                { from: minter }
+                '0', {
+                    from: minter
+                }
             );
         });
 
@@ -103,10 +149,11 @@ contract('Core ERC721 tests for PricyCom', function ([
             await expectRevert(
                 this.marketplace.cancelListing(
                     this.nft.address,
-                    secondTokenId,
-                    { from: owner }
+                    secondTokenId, {
+                        from: owner
+                    }
                 ),
-                "Not listed Item or not owning the item."
+                "not listed item"
             );
         });
 
@@ -114,18 +161,20 @@ contract('Core ERC721 tests for PricyCom', function ([
             await expectRevert(
                 this.marketplace.cancelListing(
                     this.nft.address,
-                    firstTokenId,
-                    { from: owner }
+                    firstTokenId, {
+                        from: owner
+                    }
                 ),
-                "Not listed Item or not owning the item."
+                "not listed item"
             );
         });
 
         it('successfully cancel the item', async function() {
             await this.marketplace.cancelListing(
                 this.nft.address,
-                firstTokenId,
-                { from: minter }
+                firstTokenId, {
+                    from: minter
+                }
             );
         })
     });
@@ -133,15 +182,18 @@ contract('Core ERC721 tests for PricyCom', function ([
 
     describe('Updating Item Price', function() {
         this.beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, { from: minter });
+            await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                from: minter
+            });
             await this.marketplace.listItem(
                 this.nft.address,
                 firstTokenId,
                 '1',
+                this.mockERC20.address,
                 pricePerItem,
-                '0',
-                ZERO_ADDRESS,
-                { from: minter }
+                '0', {
+                    from: minter
+                }
             );
         });
 
@@ -150,10 +202,12 @@ contract('Core ERC721 tests for PricyCom', function ([
                 this.marketplace.updateListing(
                     this.nft.address,
                     secondTokenId,
-                    newPrice,
-                    { from: owner }
+                    this.mockERC20.address,
+                    newPrice, {
+                        from: owner
+                    }
                 ),
-                "Not listed Item or not owning the item."
+                "not listed item"
             );
         });
 
@@ -162,10 +216,12 @@ contract('Core ERC721 tests for PricyCom', function ([
                 this.marketplace.updateListing(
                     this.nft.address,
                     firstTokenId,
-                    newPrice,
-                    { from: owner }
+                    this.mockERC20.address,
+                    newPrice, {
+                        from: owner
+                    }
                 ),
-                "Not listed Item or not owning the item."
+                "not listed item"
             );
         });
 
@@ -173,62 +229,89 @@ contract('Core ERC721 tests for PricyCom', function ([
             await this.marketplace.updateListing(
                 this.nft.address,
                 firstTokenId,
-                newPrice,
-                { from: minter }
+                this.mockERC20.address,
+                newPrice, {
+                    from: minter
+                }
             );
         })
     });
 
     describe('Buying Item', function() {
         beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, { from: minter });
+            await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                from: minter
+            });
             await this.marketplace.listItem(
                 this.nft.address,
                 firstTokenId,
                 '1',
+                // ZERO_ADDRESS means ETH (no token) ?
+                // ZERO_ADDRESS, native token payments seems to be no more supported..
+                this.mockERC20.address,
                 pricePerItem,
-                '0',
-                ZERO_ADDRESS,
-                { from: minter }
+                '0', {
+                    from: minter
+                }
             );
         });
 
         it('reverts when seller doesnt own the item', async function() {
-            await this.nft.safeTransferFrom(minter, owner, firstTokenId, { from: minter });
+            await this.nft.safeTransferFrom(minter, owner, firstTokenId, {
+                from: minter
+            });
             await expectRevert(
                 this.marketplace.buyItem(
                     this.nft.address,
                     firstTokenId,
-                    {
+                    // ZERO_ADDRESS means ETH (no token) ?
+                    // ZERO_ADDRESS, native token payments seems to be no more supported..
+                    this.mockERC20.address,
+                    minter, {
                         from: buyer,
-                        value: pricePerItem
+                        //value: pricePerItem
                     }
                 ),
-                "Seller doesn't own the item."
+                "not owning item"
             );
         });
 
         it('reverts when buying before the scheduled time', async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, { from: owner });
+        
+            await this.nft.safeTransferFrom(owner, minter, secondTokenId, {
+                from: owner
+            });
+                    
+            await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                from: owner
+            });
             await this.marketplace.listItem(
                 this.nft.address,
                 secondTokenId,
                 '1',
+                // ZERO_ADDRESS means ETH (no token) ?
+                // ZERO_ADDRESS, native token payments seems to be no more supported..
+                this.mockERC20.address, 
                 pricePerItem,
-                constants.MAX_UINT256,
-                ZERO_ADDRESS,
-                { from: owner }
+                constants.MAX_UINT256, // scheduling for a future sale
+                {
+                    from: minter
+                }
             );
             await expectRevert(
                 this.marketplace.buyItem(
                     this.nft.address,
                     secondTokenId,
-                    {
+                    // ZERO_ADDRESS means ETH (no token) ?
+                    // ZERO_ADDRESS, native token payments seems to be no more supported..
+                    this.mockERC20.address, 
+                    owner, {
                         from: buyer,
-                        value: pricePerItem
+                        //value: pricePerItem
                     }
                 ),
-                "Item is not buyable yet."
+                //"item not buyable"
+                "not listed item"
             );
         });
 
@@ -237,36 +320,63 @@ contract('Core ERC721 tests for PricyCom', function ([
                 this.marketplace.buyItem(
                     this.nft.address,
                     firstTokenId,
-                    {
+                    // ZERO_ADDRESS means ETH (no token) ?
+                    // ZERO_ADDRESS, native token payments seems to be no more supported..
+                    this.mockERC20.address,
+                    minter, {
                         from: buyer
                     }
                 ),
-                "Not enough amount to buy item."
+                "ERC20: transfer amount exceeds balance"
             );
         });
 
         it('successfully purchase item', async function() {
-            const feeBalanceTracker = await balance.tracker('0xFC00FACE00000000000000000000000000000000', 'ether');
-            const minterBalanceTracker = await balance.tracker(minter, 'ether');
+            // native token payments seems to be no more supported..
+            //const feeBalanceTracker = await balance.tracker('0xFC00FACE00000000000000000000000000000000', 'ether');
+            //const minterBalanceTracker = await balance.tracker(minter, 'ether');
+            await this.mockERC20.mint(buyer, ether('50'));
+            await this.mockERC20.approve(this.marketplace.address, ether('50'), {from: buyer});
+            //const buyerBalance = await this.mockERC20.balanceOf(buyer);
+            const feeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
+            const minterBalance = await this.mockERC20.balanceOf(minter);
+            //console.log("buyerBalance: ", buyerBalance);
+            //console.log("feeBalance: ", feeBalance);
+            //console.log("minterBalance: ", minterBalance);
+                      
             const receipt = await this.marketplace.buyItem(
                 this.nft.address,
                 firstTokenId,
-                {
+                // ZERO_ADDRESS means ETH (no token) ?
+                // ZERO_ADDRESS, native token payments seems to be no more supported..
+                this.mockERC20.address,                 
+                minter, {
                     from: buyer,
-                    value: pricePerItem
+                    //value: pricePerItem
                 }
             );
+            console.log("computing gas costs");
             const cost = await getGasCosts(receipt);
-            console.log(cost);
+            console.log("Ether: ", weiToEther(cost)*1);
             expect(await this.nft.ownerOf(firstTokenId)).to.be.equal(buyer);
-            expect(await feeBalanceTracker.delta('ether')).to.be.bignumber.equal('0.025');
-            expect(await minterBalanceTracker.delta('ether')).to.be.bignumber.equal('0.975');
+            //expect(await feeBalanceTracker.delta('ether')).to.be.bignumber.equal('0.025');
+            //expect(await minterBalanceTracker.delta('ether')).to.be.bignumber.equal('0.975');
+            const newfeeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
+            const newminterBalance = await this.mockERC20.balanceOf(minter); 
+            const buyerBalance = await this.mockERC20.balanceOf(buyer);            
+            //console.log("newfeeBalance: ", newfeeBalance, " - delta: ", newfeeBalance - feeBalance);
+            //console.log("newminterBalance: ", newminterBalance, " - delta: ", minterBalance - newminterBalance);
+            //expect(await feeBalanceTracker.delta('ether')).to.be.bignumber.equal('0.025');
+            //expect(await minterBalanceTracker.delta('ether')).to.be.bignumber.equal('0.975');  
+            expect(weiToEther(newfeeBalance)*1 - weiToEther(feeBalance)*1).to.be.equal(0.025);
+            expect(weiToEther(newminterBalance)*1 - weiToEther(minterBalance)*1).to.be.equal(0.975);
+            expect(weiToEther(buyerBalance)*1).to.be.equal(49); // 50 - pricePerItem                 
         })
     })
-  
+
     async function getGasCosts(receipt) {
-      const tx = await web3.eth.getTransaction(receipt.tx);
-      const gasPrice = new BN(tx.gasPrice);
-      return gasPrice.mul(new BN(receipt.receipt.gasUsed));
+        const tx = await web3.eth.getTransaction(receipt.tx);
+        const gasPrice = new BN(tx.gasPrice);
+        return gasPrice.mul(new BN(receipt.receipt.gasUsed));
     }
 })

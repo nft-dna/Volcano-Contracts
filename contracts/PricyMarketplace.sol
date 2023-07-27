@@ -19,13 +19,13 @@ interface IPricyAddressRegistry {
 
     function auction() external view returns (address);
 
-    function factory() external view returns (address);
+    function erc721factory() external view returns (address);
 
-    function privateFactory() external view returns (address);
+    function privateErc721Factory() external view returns (address);
 
-    function artFactory() external view returns (address);
+    function erc1155Factory() external view returns (address);
 
-    function privateArtFactory() external view returns (address);
+    function privateErc1155Factory() external view returns (address);
 
     function tokenRegistry() external view returns (address);
 
@@ -656,14 +656,14 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _isPricyNFT(address _nftAddress) internal view returns (bool) {
         return
             addressRegistry.artion() == _nftAddress ||
-            IPricyNFTFactory(addressRegistry.factory()).exists(_nftAddress) ||
-            IPricyNFTFactory(addressRegistry.privateFactory()).exists(
+            IPricyNFTFactory(addressRegistry.erc721factory()).exists(_nftAddress) ||
+            IPricyNFTFactory(addressRegistry.privateErc721Factory()).exists(
                 _nftAddress
             ) ||
-            IPricyNFTFactory(addressRegistry.artFactory()).exists(
+            IPricyNFTFactory(addressRegistry.erc1155Factory()).exists(
                 _nftAddress
             ) ||
-            IPricyNFTFactory(addressRegistry.privateArtFactory()).exists(
+            IPricyNFTFactory(addressRegistry.privateErc1155Factory()).exists(
                 _nftAddress
             );
     }

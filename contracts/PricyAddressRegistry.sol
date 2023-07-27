@@ -20,17 +20,17 @@ contract PricyAddressRegistry is Ownable {
     /// @notice PricyBundleMarketplace contract
     address public bundleMarketplace;
 
-    /// @notice PricyNFTFactory contract
-    address public factory;
+    /// @notice PricyERC721Factory contract
+    address public erc721factory;
 
-    /// @notice PricyNFTFactoryPrivate contract
-    address public privateFactory;
+    /// @notice PricyERC721FactoryPrivate contract
+    address public privateErc721Factory;
 
-    /// @notice PricyComFactory contract
-    address public artFactory;
+    /// @notice PricyErc1155Factory contract
+    address public erc1155Factory;
 
-    /// @notice PricyComFactoryPrivate contract
-    address public privateArtFactory;
+    /// @notice PricyErc1155FactoryPrivate contract
+    address public privateErc1155Factory;
 
     /// @notice PricyTokenRegistry contract
     address public tokenRegistry;
@@ -78,41 +78,41 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyNFTFactory contract
+     @notice Update PricyErc721Factory contract
      @dev Only admin
      */
-    function updateNFTFactory(address _factory) external onlyOwner {
-        factory = _factory;
+    function updateErc721Factory(address _erc721factory) external onlyOwner {
+        erc721factory = _erc721factory;
     }
 
     /**
-     @notice Update PricyNFTFactoryPrivate contract
+     @notice Update PricyErc721FactoryPrivate contract
      @dev Only admin
      */
-    function updateNFTFactoryPrivate(address _privateFactory)
+    function updateErc721FactoryPrivate(address _privateErc721Factory)
         external
         onlyOwner
     {
-        privateFactory = _privateFactory;
+        privateErc721Factory = _privateErc721Factory;
     }
 
     /**
-     @notice Update PricyArtFactory contract
+     @notice Update PricyErc1155Factory contract
      @dev Only admin
      */
-    function updateArtFactory(address _artFactory) external onlyOwner {
-        artFactory = _artFactory;
+    function updateErc1155Factory(address _erc1155Factory) external onlyOwner {
+        erc1155Factory = _erc1155Factory;
     }
 
     /**
-     @notice Update PricyArtFactoryPrivate contract
+     @notice Update PricyErc1155FactoryPrivate contract
      @dev Only admin
      */
-    function updateArtFactoryPrivate(address _privateArtFactory)
+    function updateErc1155FactoryPrivate(address _privateErc1155Factory)
         external
         onlyOwner
     {
-        privateArtFactory = _privateArtFactory;
+        privateErc1155Factory = _privateErc1155Factory;
     }
 
     /**

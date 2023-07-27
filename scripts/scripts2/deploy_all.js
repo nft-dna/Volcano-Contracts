@@ -245,10 +245,10 @@ async function main(network) {
     await addressRegistry.updateAuction(auction.address);
     await addressRegistry.updateMarketplace(marketplace.address);
     await addressRegistry.updateBundleMarketplace(bundleMarketplace.address);
-    await addressRegistry.updateNFTFactory(factory.address);
+    await addressRegistry.updateErc721Factory(factory.address);
     await addressRegistry.updateTokenRegistry(tokenRegistry.address);
     await addressRegistry.updatePriceFeed(priceFeed.address);
-    await addressRegistry.updateArtFactory(artFactory.address);   
+    await addressRegistry.updateErc1155Factory(artFactory.address);   
 
     await tokenRegistry.add(WRAPPED_FTM);
     

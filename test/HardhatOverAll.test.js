@@ -75,10 +75,10 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
         await this.pricyAddressRegistry.updateAuction(this.pricyAuction.address);
         await this.pricyAddressRegistry.updateMarketplace(this.pricyMarketplace.address);
         await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address);
-        await this.pricyAddressRegistry.updateNFTFactory(this.PricyERC721Factory.address);
+        await this.pricyAddressRegistry.updateErc721Factory(this.PricyERC721Factory.address);
         await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address);
         await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address);
-        await this.pricyAddressRegistry.updateArtFactory(this.PricyERC1155Factory.address);
+        await this.pricyAddressRegistry.updateErc1155Factory(this.PricyERC1155Factory.address);
     });
 
     describe('Minting and auctioning NFT', function() {
