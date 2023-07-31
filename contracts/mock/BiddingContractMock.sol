@@ -11,7 +11,7 @@ contract BiddingContractMock {
         auctionContract = _auctionContract;
     }
 
-    /* function bid(address _nftAddress, uint256 _tokenId) external payable {
-        auctionContract.placeBid{value: msg.value}(_nftAddress, _tokenId);
-    } */
+    function bid(address _nftAddress, uint256 _tokenId, uint256 _bidAmount) external payable {
+        auctionContract.placeBid(_nftAddress, _tokenId, _bidAmount);
+    }
 }

@@ -379,22 +379,32 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 price = listedItem.pricePerItem.mul(listedItem.quantity);
         uint256 feeAmount = price.mul(platformFee).div(1e3);
 
-        IERC20(_payToken).safeTransferFrom(
-            _msgSender(),
-            feeReceipient,
-            feeAmount
-        );
+		if (_payToken == address(0)) {
+		    (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+            require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+		} else {
+			IERC20(_payToken).safeTransferFrom(
+				_msgSender(),
+				feeReceipient,
+				feeAmount
+			);
+		}
 
         address minter = minters[_nftAddress][_tokenId];
         uint16 royalty = royalties[_nftAddress][_tokenId];
         if (minter != address(0) && royalty != 0) {
             uint256 royaltyFee = price.sub(feeAmount).mul(royalty).div(10000);
 
-            IERC20(_payToken).safeTransferFrom(
-                _msgSender(),
-                minter,
-                royaltyFee
-            );
+			if (_payToken == address(0)) {
+				(bool royaltyFeeTransferSuccess, ) = minter.call{value: royaltyFee}("");
+				require(royaltyFeeTransferSuccess, "PricyMarketplace: RoyaltyFee transfer failed");
+			} else {
+				IERC20(_payToken).safeTransferFrom(
+					_msgSender(),
+					minter,
+					royaltyFee
+				);
+			}
 
             feeAmount = feeAmount.add(royaltyFee);
         } else {
@@ -405,21 +415,31 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
                     10000
                 );
 
-                IERC20(_payToken).safeTransferFrom(
-                    _msgSender(),
-                    minter,
-                    royaltyFee
-                );
+				if (_payToken == address(0)) {
+					(bool royaltyFeeTransferSuccess, ) = minter.call{value: royaltyFee}("");
+					require(royaltyFeeTransferSuccess, "PricyMarketplace: RoyaltyFee transfer failed");
+				} else {
+					IERC20(_payToken).safeTransferFrom(
+						_msgSender(),
+						minter,
+						royaltyFee
+					);
+				}
 
                 feeAmount = feeAmount.add(royaltyFee);
             }
         }
 
-        IERC20(_payToken).safeTransferFrom(
-            _msgSender(),
-            _owner,
-            price.sub(feeAmount)
-        );
+		if (_payToken == address(0)) {
+            (bool ownerTransferSuccess, ) = _owner.call{ value: price.sub(feeAmount)}("");
+            require(ownerTransferSuccess, "PricyMarketplace: Owner transfer failed");		
+		} else {
+			IERC20(_payToken).safeTransferFrom(
+				_msgSender(),
+				_owner,
+				price.sub(feeAmount)
+			);
+		}
 
         // Transfer NFT to buyer
         if (IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC721)) {

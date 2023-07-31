@@ -357,7 +357,7 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     @notice Allows the hightest bidder to withdraw the bid (after 12 hours post auction's end) 
+     @notice Allows the hightest bidder to withdraw the bid (after bidWithdrawalLockTime post auction's end) 
      @dev Only callable by the existing top bidder
      @param _nftAddress ERC 721 Address
      @param _tokenId Token ID of the item being auctioned
@@ -378,8 +378,8 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _endTime = auctions[_nftAddress][_tokenId].endTime;
 
         require(
-            _getNow() > _endTime && (_getNow() - _endTime >= 43200),
-            "can withdraw only after 12 hours (after auction ended)"
+            _getNow() > _endTime && (_getNow() - _endTime >= bidWithdrawalLockTime),
+            "can withdraw only after bidWithdrawalLockTime (after auction ended)"
         );
 
         uint256 previousBid = highestBid.bid;
