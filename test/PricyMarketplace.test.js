@@ -74,305 +74,302 @@ contract('Core ERC721 tests for PricyCom', function([
         await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address, { from: owner });
         await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address, { from: owner });
     });
-
-    describe('Listing Item', function() {
-        this.beforeEach(async function() {
-            it('reverts when not owning NFT', async function() {
+    
+    for (t = 0; t <= 1; t = t+1) {
+        
+        let USE_ZERO_ADDRESS_TOKEN = (t == 0);
+    
+        describe('Listing Item', function() {
+            this.beforeEach(async function() {
+                it('reverts when not owning NFT', async function() {
+                    await expectRevert(
+                        this.marketplace.listItem(
+                            this.nft.address,
+                            firstTokenId,
+                            '1',
+                            USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                            pricePerItem,
+                            '0', {
+                                from: owner
+                            }
+                        ),
+                        "not owning item"
+                    );
+                });
+            });
+    
+            it('reverts when not approved', async function() {
                 await expectRevert(
                     this.marketplace.listItem(
                         this.nft.address,
                         firstTokenId,
                         '1',
-                        this.mockERC20.address,
+                        USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
                         pricePerItem,
                         '0', {
+                            from: minter
+                        }
+                    ),
+                    "item not approved"
+                );
+            });
+    
+            it('successfuly lists item', async function() {
+                await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                    from: minter
+                });
+                await this.marketplace.listItem(
+                    this.nft.address,
+                    firstTokenId,
+                    '1',
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                    pricePerItem,
+                    '0', {
+                        from: minter
+                    }
+                );
+            })
+    
+        });
+    
+        describe('Canceling Item', function() {
+            this.beforeEach(async function() {
+                await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                    from: minter
+                });
+                await this.marketplace.listItem(
+                    this.nft.address,
+                    firstTokenId,
+                    '1',
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                    pricePerItem,
+                    '0', {
+                        from: minter
+                    }
+                );
+            });
+    
+            it('reverts when item is not listed', async function() {
+                await expectRevert(
+                    this.marketplace.cancelListing(
+                        this.nft.address,
+                        secondTokenId, {
                             from: owner
+                        }
+                    ),
+                    "not listed item"
+                );
+            });
+    
+            it('reverts when not owning the item', async function() {
+                await expectRevert(
+                    this.marketplace.cancelListing(
+                        this.nft.address,
+                        firstTokenId, {
+                            from: owner
+                        }
+                    ),
+                    "not listed item"
+                );
+            });
+    
+            it('successfully cancel the item', async function() {
+                await this.marketplace.cancelListing(
+                    this.nft.address,
+                    firstTokenId, {
+                        from: minter
+                    }
+                );
+            })
+        });
+    
+    
+        describe('Updating Item Price', function() {
+            this.beforeEach(async function() {
+                await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                    from: minter
+                });
+                await this.marketplace.listItem(
+                    this.nft.address,
+                    firstTokenId,
+                    '1',
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                    pricePerItem,
+                    '0', {
+                        from: minter
+                    }
+                );
+            });
+    
+            it('reverts when item is not listed', async function() {
+                await expectRevert(
+                    this.marketplace.updateListing(
+                        this.nft.address,
+                        secondTokenId,
+                        USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                        newPrice, {
+                            from: owner
+                        }
+                    ),
+                    "not listed item"
+                );
+            });
+    
+            it('reverts when not owning the item', async function() {
+                await expectRevert(
+                    this.marketplace.updateListing(
+                        this.nft.address,
+                        firstTokenId,
+                        USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                        newPrice, {
+                            from: owner
+                        }
+                    ),
+                    "not listed item"
+                );
+            });
+    
+            it('successfully update the item', async function() {
+                await this.marketplace.updateListing(
+                    this.nft.address,
+                    firstTokenId,
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                    newPrice, {
+                        from: minter
+                    }
+                );
+            })
+        });
+    
+        describe('Buying Item', function() {
+            beforeEach(async function() {
+                await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                    from: minter
+                });
+                await this.marketplace.listItem(
+                    this.nft.address,
+                    firstTokenId,
+                    '1',
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                    pricePerItem,
+                    '0', {
+                        from: minter
+                    }
+                );
+            });
+    
+            it('reverts when seller doesnt own the item', async function() {
+                await this.nft.safeTransferFrom(minter, owner, firstTokenId, {
+                    from: minter
+                });
+                await expectRevert(
+                    this.marketplace.buyItem(
+                        this.nft.address,
+                        firstTokenId,
+                        USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                        minter, {
+                            from: buyer,
+                            value: USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
                         }
                     ),
                     "not owning item"
                 );
             });
-        });
-
-        it('reverts when not approved', async function() {
-            await expectRevert(
-                this.marketplace.listItem(
+    
+            it('reverts when buying before the scheduled time', async function() {
+            
+                await this.nft.safeTransferFrom(owner, minter, secondTokenId, {
+                    from: owner
+                });
+                        
+                await this.nft.setApprovalForAll(this.marketplace.address, true, {
+                    from: owner
+                });
+                await this.marketplace.listItem(
                     this.nft.address,
-                    firstTokenId,
+                    secondTokenId,
                     '1',
-                    this.mockERC20.address,
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address, 
                     pricePerItem,
-                    '0', {
+                    constants.MAX_UINT256, // scheduling for a future sale
+                    {
                         from: minter
                     }
-                ),
-                "item not approved"
-            );
-        });
-
-        it('successfuly lists item', async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, {
-                from: minter
+                );
+                await expectRevert(
+                    this.marketplace.buyItem(
+                        this.nft.address,
+                        secondTokenId,
+                        USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address, 
+                        owner, {
+                            from: buyer,
+                            value: USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
+                        }
+                    ),
+                    //"item not buyable"
+                    "not listed item"
+                );
             });
-            await this.marketplace.listItem(
-                this.nft.address,
-                firstTokenId,
-                '1',
-                this.mockERC20.address,
-                pricePerItem,
-                '0', {
-                    from: minter
+    
+            if (!USE_ZERO_ADDRESS_TOKEN) {
+              it('reverts when the amount is not enough', async function() {
+                  await expectRevert(
+                      this.marketplace.buyItem(
+                          this.nft.address,
+                          firstTokenId,
+                          USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
+                          minter, {
+                              from: buyer,
+                              value: USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
+                          }
+                      ),
+                      "ERC20: transfer amount exceeds balance"
+                  );
+              });
+            }
+    
+            it('successfully purchase item', async function() {
+                
+                const feeBalanceTracker = await balance.tracker(feeRecipient);//('0xFC00FACE00000000000000000000000000000000', 'ether');
+                const minterBalanceTracker = await balance.tracker(minter);
+                const buyerBalanceTracker = await balance.tracker(buyer);
+                
+                if (!USE_ZERO_ADDRESS_TOKEN) {
+                  await this.mockERC20.mint(buyer, ether('50'));
+                  await this.mockERC20.approve(this.marketplace.address, ether('50'), {from: buyer});
                 }
-            );
-        })
-
-    });
-
-    describe('Canceling Item', function() {
-        this.beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, {
-                from: minter
-            });
-            await this.marketplace.listItem(
-                this.nft.address,
-                firstTokenId,
-                '1',
-                this.mockERC20.address,
-                pricePerItem,
-                '0', {
-                    from: minter
-                }
-            );
-        });
-
-        it('reverts when item is not listed', async function() {
-            await expectRevert(
-                this.marketplace.cancelListing(
-                    this.nft.address,
-                    secondTokenId, {
-                        from: owner
-                    }
-                ),
-                "not listed item"
-            );
-        });
-
-        it('reverts when not owning the item', async function() {
-            await expectRevert(
-                this.marketplace.cancelListing(
-                    this.nft.address,
-                    firstTokenId, {
-                        from: owner
-                    }
-                ),
-                "not listed item"
-            );
-        });
-
-        it('successfully cancel the item', async function() {
-            await this.marketplace.cancelListing(
-                this.nft.address,
-                firstTokenId, {
-                    from: minter
-                }
-            );
-        })
-    });
-
-
-    describe('Updating Item Price', function() {
-        this.beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, {
-                from: minter
-            });
-            await this.marketplace.listItem(
-                this.nft.address,
-                firstTokenId,
-                '1',
-                this.mockERC20.address,
-                pricePerItem,
-                '0', {
-                    from: minter
-                }
-            );
-        });
-
-        it('reverts when item is not listed', async function() {
-            await expectRevert(
-                this.marketplace.updateListing(
-                    this.nft.address,
-                    secondTokenId,
-                    this.mockERC20.address,
-                    newPrice, {
-                        from: owner
-                    }
-                ),
-                "not listed item"
-            );
-        });
-
-        it('reverts when not owning the item', async function() {
-            await expectRevert(
-                this.marketplace.updateListing(
+                const feeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
+                const minterBalance = await this.mockERC20.balanceOf(minter);
+                          
+                const receipt = await this.marketplace.buyItem(
                     this.nft.address,
                     firstTokenId,
-                    this.mockERC20.address,
-                    newPrice, {
-                        from: owner
-                    }
-                ),
-                "not listed item"
-            );
-        });
-
-        it('successfully update the item', async function() {
-            await this.marketplace.updateListing(
-                this.nft.address,
-                firstTokenId,
-                this.mockERC20.address,
-                newPrice, {
-                    from: minter
-                }
-            );
-        })
-    });
-
-    describe('Buying Item', function() {
-        beforeEach(async function() {
-            await this.nft.setApprovalForAll(this.marketplace.address, true, {
-                from: minter
-            });
-            await this.marketplace.listItem(
-                this.nft.address,
-                firstTokenId,
-                '1',
-                // ZERO_ADDRESS means ETH (no token) ?
-                // ZERO_ADDRESS, native token payments seems to be no more supported..
-                this.mockERC20.address,
-                pricePerItem,
-                '0', {
-                    from: minter
-                }
-            );
-        });
-
-        it('reverts when seller doesnt own the item', async function() {
-            await this.nft.safeTransferFrom(minter, owner, firstTokenId, {
-                from: minter
-            });
-            await expectRevert(
-                this.marketplace.buyItem(
-                    this.nft.address,
-                    firstTokenId,
-                    // ZERO_ADDRESS means ETH (no token) ?
-                    // ZERO_ADDRESS, native token payments seems to be no more supported..
-                    this.mockERC20.address,
+                    USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,                 
                     minter, {
                         from: buyer,
-                        //value: pricePerItem
+                        value: USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
                     }
-                ),
-                "not owning item"
-            );
-        });
-
-        it('reverts when buying before the scheduled time', async function() {
-        
-            await this.nft.safeTransferFrom(owner, minter, secondTokenId, {
-                from: owner
-            });
-                    
-            await this.nft.setApprovalForAll(this.marketplace.address, true, {
-                from: owner
-            });
-            await this.marketplace.listItem(
-                this.nft.address,
-                secondTokenId,
-                '1',
-                // ZERO_ADDRESS means ETH (no token) ?
-                // ZERO_ADDRESS, native token payments seems to be no more supported..
-                this.mockERC20.address, 
-                pricePerItem,
-                constants.MAX_UINT256, // scheduling for a future sale
-                {
-                    from: minter
-                }
-            );
-            await expectRevert(
-                this.marketplace.buyItem(
-                    this.nft.address,
-                    secondTokenId,
-                    // ZERO_ADDRESS means ETH (no token) ?
-                    // ZERO_ADDRESS, native token payments seems to be no more supported..
-                    this.mockERC20.address, 
-                    owner, {
-                        from: buyer,
-                        //value: pricePerItem
-                    }
-                ),
-                //"item not buyable"
-                "not listed item"
-            );
-        });
-
-        it('reverts when the amount is not enough', async function() {
-            await expectRevert(
-                this.marketplace.buyItem(
-                    this.nft.address,
-                    firstTokenId,
-                    // ZERO_ADDRESS means ETH (no token) ?
-                    // ZERO_ADDRESS, native token payments seems to be no more supported..
-                    this.mockERC20.address,
-                    minter, {
-                        from: buyer
-                    }
-                ),
-                "ERC20: transfer amount exceeds balance"
-            );
-        });
-
-        it('successfully purchase item', async function() {
-            // native token payments seems to be no more supported..
-            //const feeBalanceTracker = await balance.tracker('0xFC00FACE00000000000000000000000000000000', 'ether');
-            //const minterBalanceTracker = await balance.tracker(minter, 'ether');
-            await this.mockERC20.mint(buyer, ether('50'));
-            await this.mockERC20.approve(this.marketplace.address, ether('50'), {from: buyer});
-            //const buyerBalance = await this.mockERC20.balanceOf(buyer);
-            const feeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
-            const minterBalance = await this.mockERC20.balanceOf(minter);
-            //console.log("buyerBalance: ", buyerBalance);
-            //console.log("feeBalance: ", feeBalance);
-            //console.log("minterBalance: ", minterBalance);
-                      
-            const receipt = await this.marketplace.buyItem(
-                this.nft.address,
-                firstTokenId,
-                // ZERO_ADDRESS means ETH (no token) ?
-                // ZERO_ADDRESS, native token payments seems to be no more supported..
-                this.mockERC20.address,                 
-                minter, {
-                    from: buyer,
-                    //value: pricePerItem
-                }
-            );
-            console.log("computing gas costs");
-            const cost = await getGasCosts(receipt);
-            console.log("Ether: ", weiToEther(cost)*1);
-            expect(await this.nft.ownerOf(firstTokenId)).to.be.equal(buyer);
-            //expect(await feeBalanceTracker.delta('ether')).to.be.bignumber.equal('0.025');
-            //expect(await minterBalanceTracker.delta('ether')).to.be.bignumber.equal('0.975');
-            const newfeeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
-            const newminterBalance = await this.mockERC20.balanceOf(minter); 
-            const buyerBalance = await this.mockERC20.balanceOf(buyer);            
-            //console.log("newfeeBalance: ", newfeeBalance, " - delta: ", newfeeBalance - feeBalance);
-            //console.log("newminterBalance: ", newminterBalance, " - delta: ", minterBalance - newminterBalance);
-            //expect(await feeBalanceTracker.delta('ether')).to.be.bignumber.equal('0.025');
-            //expect(await minterBalanceTracker.delta('ether')).to.be.bignumber.equal('0.975');  
-            expect(weiToEther(newfeeBalance)*1 - weiToEther(feeBalance)*1).to.be.equal(0.025);
-            expect(weiToEther(newminterBalance)*1 - weiToEther(minterBalance)*1).to.be.equal(0.975);
-            expect(weiToEther(buyerBalance)*1).to.be.equal(49); // 50 - pricePerItem                 
+                );
+                expect(await this.nft.ownerOf(firstTokenId)).to.be.equal(buyer);
+                
+                const cost = await getGasCosts(receipt);
+                console.log("Computed gas costs (ether): ", weiToEther(cost)*1);                
+                
+                if (USE_ZERO_ADDRESS_TOKEN) {
+                  expect(await feeBalanceTracker.delta()).to.be.bignumber.equal(ether('0.025'));
+                  expect(await minterBalanceTracker.delta()).to.be.bignumber.equal(ether('0.975'));
+                  expect(await buyerBalanceTracker.delta()).to.be.bignumber.equal(new BN(pricePerItem).add(cost).mul(new BN('-1')));
+                } else {
+                  const newfeeBalance = await this.mockERC20.balanceOf(feeRecipient);//('0xFC00FACE00000000000000000000000000000000');
+                  const newminterBalance = await this.mockERC20.balanceOf(minter); 
+                  const buyerBalance = await this.mockERC20.balanceOf(buyer);            
+                  expect(weiToEther(newfeeBalance)*1 - weiToEther(feeBalance)*1).to.be.equal(0.025);
+                  expect(weiToEther(newminterBalance)*1 - weiToEther(minterBalance)*1).to.be.equal(0.975);
+                  expect(weiToEther(buyerBalance)*1).to.be.equal(49); // 50 - pricePerItem
+                }                 
+            })
         })
-    })
+    } // for
 
     async function getGasCosts(receipt) {
         const tx = await web3.eth.getTransaction(receipt.tx);
