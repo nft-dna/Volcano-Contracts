@@ -320,24 +320,32 @@ contract PricyBundleMarketplace is
     /// @param _bundleID Bundle ID
     function buyItem(string memory _bundleID, address _payToken)
         external
+	payable
         nonReentrant
     {
         bytes32 bundleID = _getBundleID(_bundleID);
         address owner = owners[bundleID];
         require(owner != address(0), "invalid id");
 
-        Listing memory listing = listings[owner][bundleID];
+        /*
+	Listing memory listing = listings[owner][bundleID];
         require(listing.payToken == _payToken, "invalid pay token");
-
+	if (_payToken == address(0)) {
+		require(msg.value >= listing.price, "insufficient balance to buy");
+	}
+	*/
+		
         _buyItem(_bundleID, _payToken);
     }
 
     function _buyItem(string memory _bundleID, address _payToken) private {
         bytes32 bundleID = _getBundleID(_bundleID);
-        address owner = owners[bundleID];
+        address payable owner = payable(owners[bundleID]);
         Listing memory listing = listings[owner][bundleID];
 
         require(listing.price > 0, "not listed");
+	require(listing.payToken == _payToken, "invalid pay token");
+
         for (uint256 i; i < listing.nfts.length; i++) {
             if (_supportsInterface(listing.nfts[i], INTERFACE_ID_ERC721)) {
                 _check721Owning(listing.nfts[i], listing.tokenIds[i], owner);
@@ -357,20 +365,11 @@ contract PricyBundleMarketplace is
         uint256 price = listing.price;
         uint256 feeAmount = price.mul(platformFee).div(1e3);
         if (_payToken == address(0)) {
-            (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}(
-                ""
-            );
-            require(
-                feeTransferSuccess,
-                "PricyMarketplace: Fee transfer failed"
-            );
-            (bool ownerTransferSuccess, ) = owner.call{
-                value: price.sub(feeAmount)
-            }("");
-            require(
-                ownerTransferSuccess,
-                "PricyMarketplace: Owner transfer failed"
-            );
+		require(msg.value == price , "insufficient or incorrect value to buy");
+		(bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+		require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+		(bool ownerTransferSuccess, ) = owner.call{ value: price.sub(feeAmount) }("");
+		require(ownerTransferSuccess, "PricyMarketplace: Owner transfer failed");
         } else {
             IERC20(_payToken).safeTransferFrom(
                 _msgSender(),

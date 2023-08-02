@@ -355,16 +355,22 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _nftAddress,
         uint256 _tokenId,
         address _payToken,
-        address _owner
+        address payable _owner
     )
         external
+        payable		
         nonReentrant
         isListed(_nftAddress, _tokenId, _owner)
         validListing(_nftAddress, _tokenId, _owner)
     {
-        Listing memory listedItem = listings[_nftAddress][_tokenId][_owner];
+        /*
+	Listing memory listedItem = listings[_nftAddress][_tokenId][_owner];
         require(listedItem.payToken == _payToken, "invalid pay token");
-
+		if (_payToken == address(0)) {
+			uint256 price = listedItem.pricePerItem.mul(listedItem.quantity);
+			require(msg.value >= price, "insufficient balance to buy");		
+		}
+	*/
         _buyItem(_nftAddress, _tokenId, _payToken, _owner);
     }
 
@@ -372,25 +378,28 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _nftAddress,
         uint256 _tokenId,
         address _payToken,
-        address _owner
+        address payable _owner
     ) private {
         Listing memory listedItem = listings[_nftAddress][_tokenId][_owner];
+	
+	require(listedItem.payToken == _payToken, "invalid pay token");
 
         uint256 price = listedItem.pricePerItem.mul(listedItem.quantity);
         uint256 feeAmount = price.mul(platformFee).div(1e3);
-
-		if (_payToken == address(0)) {
-		    (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
-            require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
-		} else {
-			IERC20(_payToken).safeTransferFrom(
+		
+	if (_payToken == address(0)) {
+		require(msg.value == price, "insufficient or incorrect value to buy");		
+		(bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+		require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+	} else {
+		IERC20(_payToken).safeTransferFrom(
 				_msgSender(),
 				feeReceipient,
 				feeAmount
 			);
-		}
+	}
 
-        address minter = minters[_nftAddress][_tokenId];
+        address payable minter = payable(minters[_nftAddress][_tokenId]);
         uint16 royalty = royalties[_nftAddress][_tokenId];
         if (minter != address(0) && royalty != 0) {
             uint256 royaltyFee = price.sub(feeAmount).mul(royalty).div(10000);
@@ -408,7 +417,7 @@ contract PricyMarketplace is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
             feeAmount = feeAmount.add(royaltyFee);
         } else {
-            minter = collectionRoyalties[_nftAddress].feeRecipient;
+            minter = payable(collectionRoyalties[_nftAddress].feeRecipient);
             royalty = collectionRoyalties[_nftAddress].royalty;
             if (minter != address(0) && royalty != 0) {
                 uint256 royaltyFee = price.sub(feeAmount).mul(royalty).div(

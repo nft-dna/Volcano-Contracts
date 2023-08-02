@@ -291,7 +291,12 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidAmount
-    ) external nonReentrant whenNotPaused {
+    ) 
+		external 
+		payable
+		nonReentrant 
+		whenNotPaused 
+	{
         require(_msgSender().isContract() == false, "no contracts permitted");
 
         // Check the auction to see if this is a valid bid
@@ -302,10 +307,10 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _getNow() >= auction.startTime && _getNow() <= auction.endTime,
             "bidding outside of the auction window"
         );
-        require(
-            auction.payToken != address(0),
-            "ERC20 method used for FTM auction"
-        );
+        //require(
+        //    auction.payToken != address(0),
+        //    "ERC20 method used for FTM auction"
+        //);
 
         _placeBid(_nftAddress, _tokenId, _bidAmount);
     }
@@ -330,12 +335,12 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         require(_bidAmount >= minBidRequired, "failed to outbid highest bidder");
 
-        if (auction.payToken != address(0)) {
-            IERC20 payToken = IERC20(auction.payToken);
-            require(
-                payToken.transferFrom(_msgSender(), address(this), _bidAmount),
-                "insufficient balance or not approved"
-            );
+	if (auction.payToken == address(0)) {
+		require(msg.value == _bidAmount, "incongruent bidAmount");
+	} else {
+            	require(msg.value == 0, "no value needed");
+            	IERC20 payToken = IERC20(auction.payToken);
+            	require(payToken.transferFrom(_msgSender(), address(this), _bidAmount),"insufficient balance or not approved");
         }
 
         // Refund existing top bidder if found
@@ -939,9 +944,14 @@ contract PricyAuction is OwnableUpgradeable, ReentrancyGuardUpgradeable {
      * @param _tokenContract The address of the token contract
      */
     function reclaimERC20(address _tokenContract) external onlyOwner {
-        require(_tokenContract != address(0), "Invalid address");
-        IERC20 token = IERC20(_tokenContract);
-        uint256 balance = token.balanceOf(address(this));
-        require(token.transfer(_msgSender(), balance), "Transfer failed");
+        if (_tokenContract == address(0)) {
+		uint256 balance = address(this).balance;
+		(bool reclaimSuccess, ) = payable(_msgSender()).call{ value: balance }("");
+	        require(reclaimSuccess, "Transfer failed");
+	} else {
+		IERC20 token = IERC20(_tokenContract);
+		uint256 balance = token.balanceOf(address(this));
+		require(token.transfer(_msgSender(), balance), "Transfer failed");
+	}
     }
 }
