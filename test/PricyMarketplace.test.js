@@ -13,7 +13,7 @@ const {
 } = require('chai');
 
 const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyCom = artifacts.require('PricyCom');
+const PricyCom = artifacts.require('MockPricyERC721Tradable');
 const PricyMarketplace = artifacts.require('PricyMarketplace');
 const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
 const MockERC20 = artifacts.require('MockERC20');
@@ -34,7 +34,7 @@ contract('Core ERC721 tests for PricyCom', function([
     const secondTokenId = new BN('2');
     const nonExistentTokenId = new BN('99');
     const mintFee = new BN('5'); // mintFee
-    const platformFee = new BN('25'); // marketplace platform fee: 2.5%
+    const platformFee = web3.utils.toWei('25', 'wei'); // marketplace platform fee: 2.5%
     const pricePerItem = new BN('1000000000000000000');
     const newPrice = new BN('500000000000000000');
 
@@ -43,8 +43,8 @@ contract('Core ERC721 tests for PricyCom', function([
     const randomTokenURI = 'ipfs';
 
     beforeEach(async function() {
-        console.log(`beforeEach called`);
-        this.nft = await PricyCom.new(owner, mintFee);
+        //console.log(`beforeEach called`);
+        this.nft = await PricyCom.new(owner, ether(mintFee));
         let firstTokenresult = await this.nft.mint(minter, randomTokenURI, {
             from: owner,
             value: ether(mintFee)
@@ -59,13 +59,28 @@ contract('Core ERC721 tests for PricyCom', function([
         this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'), { from: owner });
         this.pricyTokenRegistry.add(this.mockERC20.address, { from: owner });
                         
-        this.marketplace = await PricyMarketplace.new({ from: owner });
-        await this.marketplace.initialize(feeRecipient, platformFee, { from: owner });
-        await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });       
+        //this.marketplace = await PricyMarketplace.new({ from: owner });
+        //await this.marketplace.initialize(feeRecipient, platformFee, { from: owner });
+        //await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });       
                         
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.new({ from: owner });
-        await this.pricyBundleMarketplace.initialize(feeRecipient, platformFee, { from: owner });
+        //this.pricyBundleMarketplace = await PricyBundleMarketplace.new({ from: owner });
+        //await this.pricyBundleMarketplace.initialize(feeRecipient, platformFee, { from: owner });
+        //await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });
+        
+        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
+        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [feeRecipient, platformFee], { from: owner,  initializer: 'initialize', kind: 'uups' });
+        await this.pricyMarketplaceEthers.waitForDeployment();
+        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
+        this.marketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
+        await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });        
+                    
+        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
+        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [feeRecipient, platformFee], {from: owner, initializer: 'initialize', kind: 'uups' });
+        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
+        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
+        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);
         await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });
+                
         
         this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockERC20.address, { from: owner });
                  
@@ -311,7 +326,7 @@ contract('Core ERC721 tests for PricyCom', function([
                 );
             });
     
-            if (!USE_ZERO_ADDRESS_TOKEN) {
+            //if (!USE_ZERO_ADDRESS_TOKEN) {
               it('reverts when the amount is not enough', async function() {
                   await expectRevert(
                       this.marketplace.buyItem(
@@ -320,13 +335,13 @@ contract('Core ERC721 tests for PricyCom', function([
                           USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
                           minter, {
                               from: buyer,
-                              value: USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
+                              value: 0 // USE_ZERO_ADDRESS_TOKEN ? pricePerItem : 0
                           }
                       ),
-                      "ERC20: transfer amount exceeds balance"
+                      USE_ZERO_ADDRESS_TOKEN ? "insufficient or incorrect value to buy" : "ERC20: insufficient allowance"
                   );
               });
-            }
+            //}
     
             it('successfully purchase item', async function() {
                 

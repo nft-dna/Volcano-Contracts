@@ -9,9 +9,9 @@ const { ZERO_ADDRESS } = constants
 
 const { expect } = require('chai')
 
-const PricyCom = artifacts.require('PricyCom')
+const PricyCom = artifacts.require('MockPricyERC721Tradable')
 
-contract('Core ERC721 tests for PricyComNifty', function ([
+contract('Core ERC721 tests for PricyERC721Tradable', function ([
   owner,
   minter,
   approved,
@@ -32,7 +32,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
   const randomTokenURI = 'ipfs'
 
   beforeEach(async function () {
-    this.token = await PricyCom.new(owner, mintFee)
+    this.token = await PricyCom.new(owner, ether(mintFee))
   })
 
   describe('metadata', function () {
@@ -54,7 +54,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       it('reverts when queried for non existent token id', async function () {
         await expectRevert(
           this.token.tokenURI(nonExistentTokenId),
-          'ERC721Metadata: URI query for nonexistent token',
+          'ERC721: invalid token ID',
         )
       })
 
@@ -64,7 +64,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         expect(await this.token.exists(firstTokenId)).to.equal(false)
         await expectRevert(
           this.token.tokenURI(firstTokenId),
-          'ERC721Metadata: URI query for nonexistent token',
+          'ERC721: invalid token ID',
         )
       })
     })
@@ -94,7 +94,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         it('throws', async function () {
           await expectRevert(
             this.token.balanceOf(ZERO_ADDRESS),
-            'ERC721: balance query for the zero address',
+            'ERC721: address zero is not a valid owner',
           )
         })
       })
@@ -117,7 +117,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           it('reverts', async function () {
             await expectRevert(
               this.token.ownerOf(tokenId),
-              'ERC721: owner query for nonexistent token',
+              'ERC721: invalid token ID',
             )
           })
         },
@@ -128,7 +128,8 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       const tokenId = firstTokenId
       const data = '0x42'
 
-      let logs = null
+      //let logs = null
+      let receipt = null
 
       beforeEach(async function () {
         await this.token.approve(approved, tokenId, { from: owner })
@@ -141,7 +142,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         })
 
         it('emits a Transfer event', async function () {
-          expectEvent.inLogs(logs, 'Transfer', {
+          expectEvent(receipt, 'Transfer', {
             from: owner,
             to: this.toWhom,
             tokenId: tokenId,
@@ -154,13 +155,16 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           )
         })
 
+        /*
+        // https://github.com/OpenZeppelin/openzeppelin-contracts/issues/1038
         it('emits an Approval event', async function () {
-          expectEvent.inLogs(logs, 'Approval', {
+          expectEvent(receipt, 'Approval', {
             owner,
             approved: ZERO_ADDRESS,
             tokenId: tokenId,
           })
         })
+        */
 
         it('adjusts owners balances', async function () {
           expect(await this.token.balanceOf(owner)).to.be.bignumber.equal('1')
@@ -182,39 +186,39 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       const shouldTransferTokensByUsers = function (transferFunction) {
         context('when called by the owner', function () {
           beforeEach(async function () {
-            ;({ logs } = await transferFunction.call(
+            ;receipt = await transferFunction.call(
               this,
               owner,
               this.toWhom,
               tokenId,
               { from: owner },
-            ))
+            )
           })
           transferWasSuccessful({ owner, tokenId, approved })
         })
 
         context('when called by the approved individual', function () {
           beforeEach(async function () {
-            ;({ logs } = await transferFunction.call(
+            ;receipt = await transferFunction.call(
               this,
               owner,
               this.toWhom,
               tokenId,
               { from: approved },
-            ))
+            )
           })
           transferWasSuccessful({ owner, tokenId, approved })
         })
 
         context('when called by the operator', function () {
           beforeEach(async function () {
-            ;({ logs } = await transferFunction.call(
+            ;receipt = await transferFunction.call(
               this,
               owner,
               this.toWhom,
               tokenId,
               { from: operator },
-            ))
+            )
           })
           transferWasSuccessful({ owner, tokenId, approved })
         })
@@ -224,13 +228,13 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           function () {
             beforeEach(async function () {
               await this.token.approve(ZERO_ADDRESS, tokenId, { from: owner })
-              ;({ logs } = await transferFunction.call(
+              ;receipt = await transferFunction.call(
                 this,
                 owner,
                 this.toWhom,
                 tokenId,
                 { from: operator },
-              ))
+              )
             })
             transferWasSuccessful({ owner, tokenId, approved: null })
           },
@@ -238,13 +242,13 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
         context('when sent to the owner', function () {
           beforeEach(async function () {
-            ;({ logs } = await transferFunction.call(
+            ;receipt = await transferFunction.call(
               this,
               owner,
               owner,
               tokenId,
               { from: owner },
-            ))
+            )
           })
 
           it('keeps ownership of the token', async function () {
@@ -258,7 +262,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           })
 
           it('emits only a transfer event', async function () {
-            expectEvent.inLogs(logs, 'Transfer', {
+            expectEvent(receipt, 'Transfer', {
               from: owner,
               to: owner,
               tokenId: tokenId,
@@ -289,7 +293,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
                 transferFunction.call(this, other, other, tokenId, {
                   from: owner,
                 }),
-                'ERC721: transfer of token that is not own',
+                'ERC721: transfer from incorrect owner',
               )
             })
           },
@@ -303,7 +307,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
                 transferFunction.call(this, owner, other, tokenId, {
                   from: other,
                 }),
-                'ERC721: transfer caller is not owner nor approved',
+                'ERC721: caller is not token owner or approved',
               )
             })
           },
@@ -385,7 +389,8 @@ contract('Core ERC721 tests for PricyComNifty', function ([
     describe('approve', function () {
       const tokenId = firstTokenId
 
-      let logs = null
+      //let logs = null
+      let receipt = null
 
       const itClearsApproval = function () {
         it('clears approval for the token', async function () {
@@ -403,7 +408,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
       const itEmitsApprovalEvent = function (address) {
         it('emits an approval event', async function () {
-          expectEvent.inLogs(logs, 'Approval', {
+          expectEvent(receipt, 'Approval', {
             owner: owner,
             approved: address,
             tokenId: tokenId,
@@ -414,9 +419,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       context('when clearing approval', function () {
         context('when there was no prior approval', function () {
           beforeEach(async function () {
-            ;({ logs } = await this.token.approve(ZERO_ADDRESS, tokenId, {
+            ;receipt = await this.token.approve(ZERO_ADDRESS, tokenId, {
               from: owner,
-            }))
+            })
           })
 
           itClearsApproval()
@@ -426,9 +431,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         context('when there was a prior approval', function () {
           beforeEach(async function () {
             await this.token.approve(approved, tokenId, { from: owner })
-            ;({ logs } = await this.token.approve(ZERO_ADDRESS, tokenId, {
+            ;receipt = await this.token.approve(ZERO_ADDRESS, tokenId, {
               from: owner,
-            }))
+            })
           })
 
           itClearsApproval()
@@ -439,9 +444,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       context('when approving a non-zero address', function () {
         context('when there was no prior approval', function () {
           beforeEach(async function () {
-            ;({ logs } = await this.token.approve(approved, tokenId, {
+            ;receipt = await this.token.approve(approved, tokenId, {
               from: owner,
-            }))
+            })
           })
 
           itApproves(approved)
@@ -453,9 +458,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           function () {
             beforeEach(async function () {
               await this.token.approve(approved, tokenId, { from: owner })
-              ;({ logs } = await this.token.approve(approved, tokenId, {
+              ;receipt = await this.token.approve(approved, tokenId, {
                 from: owner,
-              }))
+              })
             })
 
             itApproves(approved)
@@ -470,9 +475,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
               await this.token.approve(anotherApproved, tokenId, {
                 from: owner,
               })
-              ;({ logs } = await this.token.approve(anotherApproved, tokenId, {
+              ;receipt = await this.token.approve(anotherApproved, tokenId, {
                 from: owner,
-              }))
+              })
             })
 
             itApproves(anotherApproved)
@@ -497,7 +502,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         it('reverts', async function () {
           await expectRevert(
             this.token.approve(approved, tokenId, { from: other }),
-            'ERC721: approve caller is not owner nor approved',
+            'ERC721: approve caller is not token owner or approved for all',
           )
         })
       })
@@ -509,7 +514,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
             await this.token.approve(approved, tokenId, { from: owner })
             await expectRevert(
               this.token.approve(anotherApproved, tokenId, { from: approved }),
-              'ERC721: approve caller is not owner nor approved for all',
+              'ERC721: approve caller is not token owner or approved for all',
             )
           })
         },
@@ -518,9 +523,9 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       context('when the sender is an operator', function () {
         beforeEach(async function () {
           await this.token.setApprovalForAll(operator, true, { from: owner })
-          ;({ logs } = await this.token.approve(approved, tokenId, {
+          ;receipt = await this.token.approve(approved, tokenId, {
             from: operator,
-          }))
+          })
         })
 
         itApproves(approved)
@@ -533,7 +538,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
             this.token.approve(approved, nonExistentTokenId, {
               from: operator,
             }),
-            'ERC721: owner query for nonexistent token',
+            'ERC721: invalid token ID',
           )
         })
       })
@@ -557,13 +562,13 @@ contract('Core ERC721 tests for PricyComNifty', function ([
               })
 
               it('emits an approval event', async function () {
-                const { logs } = await this.token.setApprovalForAll(
+                const receipt = await this.token.setApprovalForAll(
                   operator,
                   true,
                   { from: owner },
                 )
 
-                expectEvent.inLogs(logs, 'ApprovalForAll', {
+                expectEvent(receipt, 'ApprovalForAll', {
                   owner: owner,
                   operator: operator,
                   approved: true,
@@ -590,13 +595,13 @@ contract('Core ERC721 tests for PricyComNifty', function ([
             })
 
             it('emits an approval event', async function () {
-              const { logs } = await this.token.setApprovalForAll(
+              const receipt = await this.token.setApprovalForAll(
                 operator,
                 true,
                 { from: owner },
               )
 
-              expectEvent.inLogs(logs, 'ApprovalForAll', {
+              expectEvent(receipt, 'ApprovalForAll', {
                 owner: owner,
                 operator: operator,
                 approved: true,
@@ -632,13 +637,13 @@ contract('Core ERC721 tests for PricyComNifty', function ([
             })
 
             it('emits an approval event', async function () {
-              const { logs } = await this.token.setApprovalForAll(
+              const receipt = await this.token.setApprovalForAll(
                 operator,
                 true,
                 { from: owner },
               )
 
-              expectEvent.inLogs(logs, 'ApprovalForAll', {
+              expectEvent(receipt, 'ApprovalForAll', {
                 owner: owner,
                 operator: operator,
                 approved: true,
@@ -663,7 +668,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         it('reverts', async function () {
           await expectRevert(
             this.token.getApproved(nonExistentTokenId),
-            'ERC721: approved query for nonexistent token',
+            'ERC721: invalid token ID',
           )
         })
       })
@@ -708,7 +713,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         it('reverts', async function () {
           await expectRevert(
             this.token.tokenOfOwnerByIndex(owner, 2),
-            'EnumerableSet: index out of bounds',
+            'ERC721Enumerable: owner index out of bounds',
           )
         })
       })
@@ -717,7 +722,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
         it('reverts', async function () {
           await expectRevert(
             this.token.tokenOfOwnerByIndex(other, 0),
-            'EnumerableSet: index out of bounds',
+            'ERC721Enumerable: owner index out of bounds',
           )
         })
       })
@@ -747,7 +752,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           expect(await this.token.balanceOf(owner)).to.be.bignumber.equal('0')
           await expectRevert(
             this.token.tokenOfOwnerByIndex(owner, 0),
-            'EnumerableSet: index out of bounds',
+            'ERC721Enumerable: owner index out of bounds',
           )
         })
       })
@@ -767,7 +772,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
       it('reverts if index is greater than supply', async function () {
         await expectRevert(
           this.token.tokenByIndex(2),
-          'EnumerableMap: index out of bounds',
+          'ERC721Enumerable: global index out of bounds',
         )
       })
     })
@@ -783,11 +788,11 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
     context('with minted token', async function () {
       beforeEach(async function () {
-        ;({ logs: this.logs } = await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) }))
+        ;receipt = await this.token.mint(owner, randomTokenURI, { from: owner, value: ether(mintFee) })
       })
 
       it('emits a Transfer event', function () {
-        expectEvent.inLogs(this.logs, 'Transfer', {
+        expectEvent(receipt, 'Transfer', {
           from: ZERO_ADDRESS,
           to: owner,
           tokenId: firstTokenId,
@@ -817,7 +822,7 @@ contract('Core ERC721 tests for PricyComNifty', function ([
     it('reverts when burning a non-existent token id', async function () {
       await expectRevert(
         this.token.burn(firstTokenId),
-        'ERC721: owner query for nonexistent token',
+        'ERC721: operator query for nonexistent token',
       )
     })
 
@@ -829,30 +834,33 @@ contract('Core ERC721 tests for PricyComNifty', function ([
 
       context('with burnt token', function () {
         beforeEach(async function () {
-          ;({ logs: this.logs } = await this.token.burn(firstTokenId))
+          ;receipt = await this.token.burn(firstTokenId)
         })
 
         it('emits a Transfer event', function () {
-          expectEvent.inLogs(this.logs, 'Transfer', {
+          expectEvent(receipt, 'Transfer', {
             from: owner,
             to: ZERO_ADDRESS,
             tokenId: firstTokenId,
           })
         })
-
+        
+        /*
+        // https://github.com/OpenZeppelin/openzeppelin-contracts/issues/1038
         it('emits an Approval event', function () {
-          expectEvent.inLogs(this.logs, 'Approval', {
+          expectEvent(receipt, 'Approval', {
             owner,
             approved: ZERO_ADDRESS,
             tokenId: firstTokenId,
-          })
+          })        
         })
+        */
 
         it('deletes the token', async function () {
           expect(await this.token.balanceOf(owner)).to.be.bignumber.equal('1')
           await expectRevert(
             this.token.ownerOf(firstTokenId),
-            'ERC721: owner query for nonexistent token',
+            'ERC721: invalid token ID',
           )
         })
 
@@ -873,14 +881,14 @@ contract('Core ERC721 tests for PricyComNifty', function ([
           expect(await this.token.totalSupply()).to.be.bignumber.equal('0')
           await expectRevert(
             this.token.tokenByIndex(0),
-            'EnumerableMap: index out of bounds',
+            'ERC721Enumerable: global index out of bounds',
           )
         })
 
         it('reverts when burning a token id that has been deleted', async function () {
           await expectRevert(
             this.token.burn(firstTokenId),
-            'ERC721: owner query for nonexistent token',
+            'ERC721: operator query for nonexistent token',
           )
         })
       })

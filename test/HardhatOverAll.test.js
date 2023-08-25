@@ -1,7 +1,8 @@
-// npx hardhat test .\test\HardhatOverAll.test.js --network localhost; run first in another shell: npx hardhat node
+// npx hardhat test ./test/HardhatOverAll.test.js --network localhost; 
+// run first (in another shell): npx hardhat node
 //   on Error: Cannot find module '@openzeppelin/test-helpers'
-// if you prefer instead of MockPricyAuction ypu could install
-//     npm install @openzeppelin/test-helpers
+//     yarn add @openzeppelin/test-helpers
+// if you prefer instead of MockPricyAuction you could install
 // and get\increase timestamps, i.e.: await helpers.time.increase(3600);
 const {
     expectRevert,
@@ -12,14 +13,16 @@ const {
     balance,
     send
   } = require('@openzeppelin/test-helpers');
+//const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const { ZERO_ADDRESS } = constants;
 
 const {expect} = require('chai');
 
 const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyCom = artifacts.require('PricyCom');
+const PricyERC721 = artifacts.require('MockPricyERC721Tradable');
 const PricyAuction = artifacts.require('MockPricyAuction');
 const PricyMarketplace = artifacts.require('PricyMarketplace');
+const PricyMarketplaceUpgraded = artifacts.require('PricyMarketplaceUpgraded');
 const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
 const PricyERC721Factory = artifacts.require('PricyERC721Factory');
 const PricyERC1155Factory = artifacts.require('PricyERC1155Factory');
@@ -28,49 +31,64 @@ const PricyPriceFeed = artifacts.require('PricyPriceFeed');
 const MockERC20 = artifacts.require('MockERC20');
 
 
-const PLATFORM_FEE = '2';
-const MARKETPLACE_PLATFORM_FEE = '50'  // 5%
-const AUCTION_PLATFORM_FEE = '25'  // 5%
-const MINT_FEE = '1';
+const MARKETPLACE_MINT_COST = '50'  // 5%
+const AUCTION_MINT_COST = '25'  // 5%
+const MINT_COST = '2';  // ether
 
 const weiToEther = (n) => {
     return web3.utils.fromWei(n.toString(), 'ether');
 }
 
 async function getGasCosts(receipt) {
-    const tx = await web3.eth.getTransaction(receipt.tx);
+    const tx = await web3.eth.getTransaction(receipt.tx);  
     const gasPrice = new BN(tx.gasPrice);
     return gasPrice.mul(new BN(receipt.receipt.gasUsed));
 }    
 
 contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer, bidder1, bidder2, bidder3])  {
-
-    const platformFee = ether(PLATFORM_FEE);
-    const marketPlatformFee = new BN(MARKETPLACE_PLATFORM_FEE);
-    const actionPlatformFee = new BN(AUCTION_PLATFORM_FEE);    
-    const mintFee = ether(MINT_FEE);
-    
+         
+    const marketPlatformFee = web3.utils.toWei(MARKETPLACE_MINT_COST, 'wei');
+    const auctionPlatformFee = web3.utils.toWei(AUCTION_MINT_COST, 'wei');    
+    const mintCost = web3.utils.toWei(MINT_COST, 'ether');
 
     beforeEach(async function () {
         
-        this.pricyAddressRegistry = await PricyAddressRegistry.new();
-        this.artion = await PricyCom.new(platformFeeRecipient, platformFee);
 
-        this.pricyAuction = await PricyAuction.new();
-        await this.pricyAuction.initialize(platformFeeRecipient);
-        await this.pricyAuction.updatePlatformFee(actionPlatformFee);        
+        this.pricyAddressRegistry = await PricyAddressRegistry.new();
+        this.erc721nft = await PricyERC721.new(platformFeeRecipient, mintCost);
+
+        //this.pricyAuction = await PricyAuction.new();
+        //await this.pricyAuction.initialize(platformFeeRecipient, auctionPlatformFee);
+        //await this.pricyAuction.updatePlatformFee(actionPlatformFee);
+        ////this.pricyAuction = await deployProxy(PricyAuction, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
+        const Auction = await ethers.getContractFactory('MockPricyAuction');
+        this.pricyAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeRecipient, auctionPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.pricyAuctionEthers.waitForDeployment();
+        this.pricyAuctionEthers.address = await this.pricyAuctionEthers.getAddress();  
+        this.pricyAuction = await PricyAuction.at(this.pricyAuctionEthers.address);                    
         await this.pricyAuction.updateAddressRegistry(this.pricyAddressRegistry.address);
 
-        this.pricyMarketplace = await PricyMarketplace.new();
-        await this.pricyMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
-
+        //this.pricyMarketplace = await PricyMarketplace.new();
+        //await this.pricyMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
+        ////this.pricyMarketplace = await deployProxy(PricyMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
+        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
+        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.pricyMarketplaceEthers.waitForDeployment();
+        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
+        this.pricyMarketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
         await this.pricyMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address);
 
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.new();
-        await this.pricyBundleMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
+        //this.pricyBundleMarketplace = await PricyBundleMarketplace.new();
+        //await this.pricyBundleMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
+        ////this.pricyBundleMarketplace = await deployProxy(PricyBundleMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });
+        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
+        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
+        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
+        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);           
         await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address);
 
-        this.PricyERC721Factory = await PricyERC721Factory.new(this.pricyAuction.address, this.pricyMarketplace.address, this.pricyBundleMarketplace.address, mintFee, platformFeeRecipient, platformFee);
+        this.PricyERC721Factory = await PricyERC721Factory.new(this.pricyAuction.address, this.pricyMarketplace.address, this.pricyBundleMarketplace.address, platformFeeRecipient, mintCost);
         this.pricyTokenRegistry = await PricyTokenRegistry.new();
 
         this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'));
@@ -79,9 +97,9 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
         this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockERC20.address);
 
-        this.PricyERC1155Factory = await PricyERC1155Factory.new(this.pricyMarketplace.address, this.pricyBundleMarketplace.address, mintFee, platformFeeRecipient, platformFee);
+        this.PricyERC1155Factory = await PricyERC1155Factory.new(this.pricyAuction.address, this.pricyMarketplace.address, this.pricyBundleMarketplace.address, platformFeeRecipient, mintCost);
 
-        await this.pricyAddressRegistry.updatePricyCom(this.artion.address);
+        //await this.pricyAddressRegistry.updatePricyCom(this.erc721nft.address);
         await this.pricyAddressRegistry.updateAuction(this.pricyAuction.address);
         await this.pricyAddressRegistry.updateMarketplace(this.pricyMarketplace.address);
         await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address);
@@ -90,8 +108,31 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
         await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address);
         await this.pricyAddressRegistry.updateErc1155Factory(this.PricyERC1155Factory.address);
     });
-
+    
+    describe('Proxy test', function() {
+    
+        it('MarketUpgrade', async function(){ 
+        
+        const oldAddress = this.pricyMarketplace.address;
+        const oldRegistryAddress = await this.pricyMarketplace.addressRegistry();
+        //console.log('old address = ', oldAddress, ' - registry: ', oldRegistryAddress);
+        const MarketplaceUpgraded = await ethers.getContractFactory('PricyMarketplaceUpgraded');
+        this.pricyMarketplaceEthersUpgraded = await upgrades.upgradeProxy(this.pricyMarketplaceEthers.address, MarketplaceUpgraded, { kind: 'uups' });
+        await this.pricyMarketplaceEthersUpgraded.waitForDeployment();
+        this.pricyMarketplaceEthersUpgraded.address = await this.pricyMarketplaceEthersUpgraded.getAddress(); 
+        this.pricyMarketplace = await PricyMarketplaceUpgraded.at(this.pricyMarketplaceEthersUpgraded.address); 
+        const newAddress = this.pricyMarketplace.address;
+        const newRegistryAddress = await this.pricyMarketplace.addressRegistry();
+        //console.log('new address = ', newAddress, ' - registry: ', newRegistryAddress);
+        expect(oldAddress).to.be.equal(newAddress); 
+        expect(oldRegistryAddress).to.be.equal(newRegistryAddress); 
+        expect(await this.pricyMarketplace.version()).to.be.bignumber.equal('2');             
+          
+        }); 
+    });
+    
     describe('Minting and auctioning NFT', function() {
+    
         for (t = 0; t <= 1; t = t+1) {
         
         let USE_ZERO_ADDRESS_TOKEN = (t == 0);
@@ -105,7 +146,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             A buyer then buys that NFT
             `);
 
-            let addressBalance = await this.artion.platformFee();
+            let addressBalance = await this.erc721nft.mintFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 
@@ -119,7 +160,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Now minting...`);
-            let result = await this.artion.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(PLATFORM_FEE)});
+            let result = await this.erc721nft.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(MINT_COST)});
+                      
             console.log(`
             Minted successfully`);
 
@@ -132,15 +174,15 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             FTM addressBalance of recipient after minting: ${weiToEther(addressBalance4)}`);
 
             console.log(`
-            *The difference of the artist's FTM addressBalance should be more than ${PLATFORM_FEE} FTM as 
-            the platform fee is ${PLATFORM_FEE} FTM and minting costs some gases
-            but should be less than ${PLATFORM_FEE + 1} FTM as the gas fees shouldn't be more than 1 FTM`);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(PLATFORM_FEE*1);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(PLATFORM_FEE*1 + 1);
+            *The difference of the artist's FTM addressBalance should be more than ${MINT_COST} FTM as 
+            the platform fee is ${MINT_COST} FTM and minting costs some gases
+            but should be less than ${MINT_COST}+1 FTM as the gas fees shouldn't be more than 1 FTM`);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(MINT_COST*1);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(MINT_COST*1 + 1);
 
             console.log(`
-            *The difference of the recipients's FTM addressBalance should be ${PLATFORM_FEE} FTM as the platform fee is ${PLATFORM_FEE} FTM `);
-            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(PLATFORM_FEE*1);
+            *The difference of the recipients's FTM addressBalance should be ${MINT_COST} FTM as the platform fee is ${MINT_COST} FTM `);
+            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(MINT_COST*1);
 
             console.log(`
             *Event Minted should be emitted with correct values: 
@@ -148,31 +190,32 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             beneficiary = ${artist}, 
             tokenUri = ${'http://artist.com/art.jpeg'},
             minter = ${artist}`);
-            expectEvent.inLogs(result.logs, 'Minted',{
-                tokenId: new BN('1'),
+            expectEvent(result, 'Minted',{
+                tokenId: '1',
                 beneficiary: artist,
                 tokenUri : 'http://artist.com/art.jpeg',
                 minter : artist
             });
 
             console.log(`
-            The artist approves the nft to the market`);
-            await this.artion.setApprovalForAll(this.pricyMarketplace.address, true, {from: artist});
+            *The artist approves the nft to the market`);
+            await this.erc721nft.setApprovalForAll(this.pricyMarketplace.address, true, {from: artist});
 
             console.log(`
-            The artist lists the nft in the market with price 20 wFTM and 
-            starting time 2021-09-22 10:00:00 GMT`);
+            *The artist lists the nft in the market with price 20 wFTM and starting time 2021-09-22 10:00:00 GMT`);
+            
             await this.pricyMarketplace.listItem(
-                    this.artion.address,
+                    this.erc721nft.address,
                     new BN('1'),
                     new BN('1'),
                     USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
-                    ether('20'),
+                    web3.utils.toWei('20', 'ether'),
                     new BN('1632304800'), // 2021-09-22 10:00:00 GMT
                     { from : artist }
                     );
-
-            let listing = await this.pricyMarketplace.listings(this.artion.address, new BN('1'), artist);
+            
+            let listing = await this.pricyMarketplace.listings(this.erc721nft.address, new BN('1'), artist);
+            
             console.log(`
             *The nft should be on the marketplace listing`);
             expect(listing.quantity.toString()).to.be.equal('1');
@@ -187,47 +230,49 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             {
               console.log(`
               Mint 50 wFTMs to buyer so he can buy the nft`);
-              await this.mockERC20.mint(buyer, ether('50'));
+              await this.mockERC20.mint(buyer, web3.utils.toWei('50', 'ether'));
               console.log(`
               Buyer approves PricyMarketplace to transfer up to 50 wFTM`);              
-              await this.mockERC20.approve(this.pricyMarketplace.address, ether('50'), {from: buyer});
+              await this.mockERC20.approve(this.pricyMarketplace.address, web3.utils.toWei('50', 'ether'), {from: buyer});
             }
             
             console.log(`
-            Buyer buys the nft for 20 wFTMs`);
+            Buyer buys the nft for 20 wFTMs. Balance is: `, weiToEther(USE_ZERO_ADDRESS_TOKEN ? await web3.eth.getBalance(buyer) : await this.mockERC20.balanceOf(buyer)));
+            
             result = await this.pricyMarketplace.buyItem(
-                this.artion.address, 
+                this.erc721nft.address, 
                 new BN('1'), 
                 USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address, 
                 artist, 
                 { from: buyer,
-                  value: USE_ZERO_ADDRESS_TOKEN ? ether('20') : 0
+                  value: USE_ZERO_ADDRESS_TOKEN ? web3.utils.toWei('20', 'ether') : 0
                 });
-
+            
             console.log(`
             *Event ItemSold should be emitted with correct values: 
             seller = ${artist}, 
             buyer = ${buyer}, 
-            nft = ${this.artion.address},
+            nft = ${this.erc721nft.address},
             tokenId = 1,
-            quantity =1,
+            quantity = 1,
             payToken = ${USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address},
-            unitPrice = 20,
+            payTokenPrice = 0,
             pricePerItem = 20`);
-            expectEvent.inLogs(result.logs, 'ItemSold',{
+            
+            expectEvent(result, 'ItemSold',{
                 seller: artist,
                 buyer: buyer,
-                nft : this.artion.address,
-                tokenId : new BN('1'),
-                quantity : new BN('1'),
+                nft : this.erc721nft.address,
+                tokenId : web3.utils.toBN('1'),
+                quantity : web3.utils.toBN('1'),
                 payToken : USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
-                unitPrice : ether('0'),
+                payTokenPrice : ether('0'),
                 pricePerItem : ether('20')
             });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
-              expect(await buyerTracker.delta()).to.be.bignumber.equal(ether('20').add(await getGasCosts(result)).mul(new BN('-1')));
+              expect(await buyerTracker.delta()).to.be.bignumber.equal(ether('20').add(await getGasCosts(result)).mul(web3.utils.toBN('-1')));
             } else {
               addressBalance = await this.mockERC20.balanceOf(buyer);
               console.log(`
@@ -235,7 +280,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(weiToEther(addressBalance)*1).to.be.equal(30);
             }
 
-            let nftOwner = await this.artion.ownerOf(new BN('1'));
+            let nftOwner = await this.erc721nft.ownerOf(web3.utils.toBN('1'));
             console.log(`
             The owner of the nft now should be the buyer`);
             expect(nftOwner).to.be.equal(buyer);
@@ -250,7 +295,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(weiToEther(addressBalance)*1).to.be.equal(19);
             }
 
-            listing = await this.pricyMarketplace.listings(this.artion.address, new BN('1'), artist);
+            listing = await this.pricyMarketplace.listings(this.erc721nft.address, web3.utils.toBN('1'), artist);
             console.log(`
             *The nft now should be removed from the listing`);            
             expect(listing.quantity.toString()).to.be.equal('0');
@@ -269,7 +314,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             He/She then put it on an auction with reserve price of 20 wFTMs
             Bidder1, bidder2, bidder3 then bid the auction with 20 wFTMs, 25 wFTMs, and 30 wFTMs respectively`);
 
-            let addressBalance = await this.artion.platformFee();
+            let addressBalance = await this.erc721nft.mintFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 
@@ -283,7 +328,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Now minting...`);
-            let result = await this.artion.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(PLATFORM_FEE)});
+            let result = await this.erc721nft.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(MINT_COST)});
             console.log(`
             Minted successfully`);
 
@@ -296,15 +341,15 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             FTM addressBalance of recipient after minting: ${weiToEther(addressBalance4)}`);
 
             console.log(`
-            *The difference of the artist's FTM addressBalance should be more than ${PLATFORM_FEE} FTMs as 
-            the platform fee is ${PLATFORM_FEE} FTM and minting costs some gases
-            but should be less than ${PLATFORM_FEE + 1} FTM as the gas fees shouldn't be more than 1 FTM`);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(PLATFORM_FEE*1);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(PLATFORM_FEE*1 + 1);
+            *The difference of the artist's FTM addressBalance should be more than ${MINT_COST} FTMs as 
+            the platform fee is ${MINT_COST} FTM and minting costs some gases
+            but should be less than ${MINT_COST + 1} FTM as the gas fees shouldn't be more than 1 FTM`);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(MINT_COST*1);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(MINT_COST*1 + 1);
 
             console.log(`
-            *The difference of the recipients's FTM addressBalance should be ${PLATFORM_FEE} FTMs as the platform fee is ${PLATFORM_FEE} FTMs `);
-            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(PLATFORM_FEE*1);
+            *The difference of the recipients's FTM addressBalance should be ${MINT_COST} FTMs as the platform fee is ${MINT_COST} FTMs `);
+            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(MINT_COST*1);
 
             console.log(`
             *Event Minted should be emitted with correct values: 
@@ -312,8 +357,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             beneficiary = ${artist}, 
             tokenUri = ${'http://artist.com/art.jpeg'},
             minter = ${artist}`);
-            expectEvent.inLogs(result.logs, 'Minted',{
-                tokenId: new BN('1'),
+            expectEvent(result, 'Minted',{
+                tokenId: web3.utils.toBN('1'),
                 beneficiary: artist,
                 tokenUri : 'http://artist.com/art.jpeg',
                 minter : artist
@@ -321,33 +366,33 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             The artist approves the nft to the market`);
-            await this.artion.setApprovalForAll(this.pricyAuction.address, true, {from: artist});
+            await this.erc721nft.setApprovalForAll(this.pricyAuction.address, true, {from: artist});
 
             console.log(`
             Let's mock that the current time: 2021-09-25 09:00:00`);
-            await this.pricyAuction.setTime(new BN('1632560400'));
+            await this.pricyAuction.setTime(web3.utils.toBN('1632560400'));
 
             console.log(`
             The artist auctions his nfts with reserve price of 20 wFTMs`);
             result =  await this.pricyAuction.createAuction(
-                this.artion.address,
-                new BN('1'),
+                this.erc721nft.address,
+                web3.utils.toBN('1'),
                 USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
                 ether('20'),
-                new BN('1632564000'),  //2021-09-25 10:00:00
+                web3.utils.toBN('1632564000'),  //2021-09-25 10:00:00
                 false,
-                new BN('1632996000'),   //2021-09-30 10:00:00
+                web3.utils.toBN('1632996000'),   //2021-09-30 10:00:00
                 { from: artist }
             );
 
             console.log(`
             *Event AuctionCreated should be emitted with correct values: 
-            nftAddress = ${this.artion.address}, 
+            nftAddress = ${this.erc721nft.address}, 
             tokenId = 1, 
             payToken = ${USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address}`);
-            expectEvent.inLogs(result.logs, 'AuctionCreated',{
-                nftAddress: this.artion.address,
-                tokenId: new BN('1'),
+            expectEvent(result, 'AuctionCreated',{
+                nftAddress: this.erc721nft.address,
+                tokenId: web3.utils.toBN('1'),
                 payToken: USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address
             });
 
@@ -388,15 +433,15 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             
             console.log(`
             Let's mock that the current time: 2021-09-25 10:30:00`);
-            await this.pricyAuction.setTime(new BN('1632565800'));
+            await this.pricyAuction.setTime(web3.utils.toBN('1632565800'));
 
             console.log(`
             Bidder1 place a bid of 20 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.artion.address, new BN('1'), ether('20'), { from: bidder1, value: USE_ZERO_ADDRESS_TOKEN ? ether('20') : 0 });
+            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('20'), { from: bidder1, value: USE_ZERO_ADDRESS_TOKEN ? ether('20') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
-              expect(await bidder1Tracker.delta()).to.be.bignumber.equal(ether('20').add(await getGasCosts(result)).mul(new BN('-1')));              
+              expect(await bidder1Tracker.delta()).to.be.bignumber.equal(ether('20').add(await getGasCosts(result)).mul(web3.utils.toBN('-1')));              
             } else {
               addressBalance = await this.mockERC20.balanceOf(bidder1);
               console.log(`
@@ -406,12 +451,12 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Bidder2 place a bid of 25 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.artion.address, new BN('1'), ether('25'), { from: bidder2, value: USE_ZERO_ADDRESS_TOKEN ? ether('25') : 0 });
+            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('25'), { from: bidder2, value: USE_ZERO_ADDRESS_TOKEN ? ether('25') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
               expect(await bidder1Tracker.delta()).to.be.bignumber.equal(ether('20'));
-              expect(await bidder2Tracker.delta()).to.be.bignumber.equal(ether('25').add(await getGasCosts(result)).mul(new BN('-1')));
+              expect(await bidder2Tracker.delta()).to.be.bignumber.equal(ether('25').add(await getGasCosts(result)).mul(web3.utils.toBN('-1')));
             } else {
               addressBalance = await this.mockERC20.balanceOf(bidder1);
               console.log(`
@@ -426,12 +471,12 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Bidder3 place a bid of 30 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.artion.address, new BN('1'), ether('30'), { from: bidder3, value: USE_ZERO_ADDRESS_TOKEN ? ether('30') : 0 });
+            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('30'), { from: bidder3, value: USE_ZERO_ADDRESS_TOKEN ? ether('30') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
               expect(await bidder2Tracker.delta()).to.be.bignumber.equal(ether('25'));
-              expect(await bidder3Tracker.delta()).to.be.bignumber.equal(ether('30').add(await getGasCosts(result)).mul(new BN('-1')));
+              expect(await bidder3Tracker.delta()).to.be.bignumber.equal(ether('30').add(await getGasCosts(result)).mul(web3.utils.toBN('-1')));
             } else {
               addressBalance = await this.mockERC20.balanceOf(bidder2);
               console.log(`
@@ -446,11 +491,11 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Let's mock that the current time: 2021-09-30 11:00:00 so the auction has ended`);
-            await this.pricyAuction.setTime(new BN('1632999600'));
+            await this.pricyAuction.setTime(web3.utils.toBN('1632999600'));
 
             console.log(`
             The artist tries to make the auction complete`);
-            result = await this.pricyAuction.resultAuction(this.artion.address, new BN('1'), {from : artist});
+            result = await this.pricyAuction.resultAuction(this.erc721nft.address, web3.utils.toBN('1'), {from : artist});
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
@@ -458,7 +503,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(await artistTracker.delta()).to.be.bignumber.equal(ether('29.75').sub(await getGasCosts(result)));
             } else {
               console.log(`
-              *As the platformFee is 2.5%, the platform fee recipient should get 2.5% of (30 - 20) which is 0.25 wFTM.`);
+              *As the mintCost is 2.5%, the platform fee recipient should get 2.5% of (30 - 20) which is 0.25 wFTM.`);
               addressBalance = await this.mockERC20.balanceOf(platformFeeRecipient);
               expect(weiToEther(addressBalance)*1).to.be.equal(0.25);
   
@@ -468,25 +513,25 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(weiToEther(addressBalance)*1).to.be.equal(29.75);
             }
             
-            let nftOwner = await this.artion.ownerOf(new BN('1'));
+            let nftOwner = await this.erc721nft.ownerOf(web3.utils.toBN('1'));
             console.log(`
             *The owner of the nft now should be the bidder3`);
             expect(nftOwner).to.be.equal(bidder3);
 
             console.log(`
             *Event AuctionResulted should be emitted with correct values: 
-            nftAddress = ${this.artion.address}, 
+            nftAddress = ${this.erc721nft.address}, 
             tokenId = 1,
             winner = ${bidder3} ,
             payToken = ${USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address},
-            unitPrice = 0,
+            payTokenPrice = 0,
             winningBid = 30`);
-            expectEvent.inLogs(result.logs, 'AuctionResulted',{
-                nftAddress: this.artion.address,
-                tokenId: new BN('1'),
+            expectEvent(result, 'AuctionResulted',{
+                nftAddress: this.erc721nft.address,
+                tokenId: web3.utils.toBN('1'),
                 winner: bidder3,
                 payToken: USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
-                unitPrice: ether('0'),
+                payTokenPrice: ether('0'),
                 winningBid: ether('30')
             });
 
@@ -500,7 +545,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             He/She then put them on the marketplace as bundle price of 20 wFTMs
             A buyer then buys them for 20 wFTMs`);
 
-            let addressBalance = await this.artion.platformFee();
+            let addressBalance = await this.erc721nft.mintFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 
@@ -514,7 +559,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Now minting the first NFT...`);
-            let result = await this.artion.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(PLATFORM_FEE)});
+            let result = await this.erc721nft.mint(artist, 'http://artist.com/art.jpeg', {from: artist, value: ether(MINT_COST)});
             console.log(`
             NFT1 minted successfully`);
 
@@ -524,8 +569,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             beneficiary = ${artist}, 
             tokenUri = ${'http://artist.com/art.jpeg'},
             minter = ${artist}`);
-            expectEvent.inLogs(result.logs, 'Minted',{
-                tokenId: new BN('1'),
+            expectEvent(result, 'Minted',{
+                tokenId: web3.utils.toBN('1'),
                 beneficiary: artist,
                 tokenUri : 'http://artist.com/art.jpeg',
                 minter : artist
@@ -533,7 +578,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Now minting the second NFT...`);
-            result = await this.artion.mint(artist, 'http://artist.com/art2.jpeg', {from: artist, value: ether(PLATFORM_FEE)});
+            result = await this.erc721nft.mint(artist, 'http://artist.com/art2.jpeg', {from: artist, value: ether(MINT_COST)});
             console.log(`
             NFT2 minted successfully`);
 
@@ -543,8 +588,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             beneficiary = ${artist}, 
             tokenUri = ${'http://artist.com/art2.jpeg'},
             minter = ${artist}`);
-            expectEvent.inLogs(result.logs, 'Minted',{
-                tokenId: new BN('2'),
+            expectEvent(result, 'Minted',{
+                tokenId: web3.utils.toBN('2'),
                 beneficiary: artist,
                 tokenUri : 'http://artist.com/art2.jpeg',
                 minter : artist
@@ -559,31 +604,31 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             FTM addressBalance of recipient after minting: ${weiToEther(addressBalance4)}`);
 
             console.log(`
-            *The difference of the artist's FTM addressBalance should be more than ${2*PLATFORM_FEE} FTMs as 
-            the platform fee is ${PLATFORM_FEE} FTM and minting costs some gases
-            but should be less than ${PLATFORM_FEE + 1} FTM as the gas fees shouldn't be more than 1 FTM`);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(PLATFORM_FEE*2);
-            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(PLATFORM_FEE*2 + 1);
+            *The difference of the artist's FTM addressBalance should be more than ${2*MINT_COST} FTMs as 
+            the platform fee is ${MINT_COST} FTM and minting costs some gases
+            but should be less than ${MINT_COST + 1} FTM as the gas fees shouldn't be more than 1 FTM`);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.greaterThan(MINT_COST*2);
+            expect(weiToEther(addressBalance1)*1 - weiToEther(addressBalance3)*1).to.be.lessThan(MINT_COST*2 + 1);
 
             console.log(`
-            *The difference of the recipients's FTM addressBalance should be ${PLATFORM_FEE*2} FTMs as the platform fee is ${PLATFORM_FEE} FTMs `);
-            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(PLATFORM_FEE*2);            
+            *The difference of the recipients's FTM addressBalance should be ${MINT_COST*2} FTMs as the platform fee is ${MINT_COST} FTMs `);
+            expect(weiToEther(addressBalance4)*1 - weiToEther(addressBalance2)*1).to.be.equal(MINT_COST*2);            
 
             console.log(`
             The artist approves the nft to the market`);
-            await this.artion.setApprovalForAll(this.pricyBundleMarketplace.address, true, {from: artist});
+            await this.erc721nft.setApprovalForAll(this.pricyBundleMarketplace.address, true, {from: artist});
 
             console.log(`
             The artist lists the 2 nfts in the bundle market with price 20 wFTM and 
             starting time 2021-09-22 10:00:00 GMT`);
             await this.pricyBundleMarketplace.listItem(
                     'mynfts',
-                    [this.artion.address, this.artion.address],
-                    [new BN('1'),new BN('2')],
-                    [new BN('1'), new BN('1')],
+                    [this.erc721nft.address, this.erc721nft.address],
+                    [web3.utils.toBN('1'),web3.utils.toBN('2')],
+                    [web3.utils.toBN('1'), web3.utils.toBN('1')],
                     USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
                     ether('20'),
-                    new BN('1632304800'), // 2021-09-22 10:00:00 GMT
+                    web3.utils.toBN('1632304800'), // 2021-09-22 10:00:00 GMT
                     { from : artist }
                     );
 
@@ -592,8 +637,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             console.log(`
             *The nfts should be on the bundle marketplace listing`);
             expect(listing.nfts.length).to.be.equal(2);
-            expect(listing.nfts[0]).to.be.equal(this.artion.address);
-            expect(listing.nfts[1]).to.be.equal(this.artion.address);
+            expect(listing.nfts[0]).to.be.equal(this.erc721nft.address);
+            expect(listing.nfts[1]).to.be.equal(this.erc721nft.address);
             expect(listing.tokenIds[0].toString()).to.be.equal('1');
             expect(listing.tokenIds[1].toString()).to.be.equal('2');
             expect(listing.quantities[0].toString()).to.be.equal('1');
@@ -630,22 +675,22 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             buyer = ${buyer}, 
             bundleId = ${'mynfts'},
             payToken = ${USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address},
-            unitPrice = ${ether('0')},
+            payTokenPrice = ${ether('0')},
             price = ${ether('20')}`);
-            expectEvent.inLogs(result.logs, 'ItemSold',{
+            expectEvent(result, 'ItemSold',{
                 seller: artist,
                 buyer: buyer,
                 bundleID : 'mynfts',
                 payToken : USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
-                unitPrice: ether('0'),
+                payTokenPrice: ether('0'),
                 price: ether('20')
                 });
                 
             console.log(`
             *The two nfts now should belong to buyer`);
-            let nftOwner = await this.artion.ownerOf(new BN('1'));
+            let nftOwner = await this.erc721nft.ownerOf(web3.utils.toBN('1'));
             expect(nftOwner).to.be.equal(buyer);
-            nftOwner = await this.artion.ownerOf(new BN('2'));
+            nftOwner = await this.erc721nft.ownerOf(web3.utils.toBN('2'));
             expect(nftOwner).to.be.equal(buyer);
             
             if (USE_ZERO_ADDRESS_TOKEN) {
@@ -663,8 +708,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(weiToEther(addressBalance)*1).to.be.equal(1);
             }
 
-        })
+        })      
       }  // for
     });
-
 });

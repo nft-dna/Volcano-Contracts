@@ -15,18 +15,18 @@ const {
 const { ZERO_ADDRESS } = constants;
 
 const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyCom = artifacts.require('PricyCom');
+const PricyCom = artifacts.require('MockPricyERC721Tradable');
 const PricyAuction = artifacts.require('MockPricyAuction');
 const PricyAuctionReal = artifacts.require('PricyAuction');
 const PricyTokenRegistry = artifacts.require('PricyTokenRegistry');
 const PricyMarketplace = artifacts.require('PricyMarketplace');
 const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
 const PricyPriceFeed = artifacts.require('PricyPriceFeed');
-const BiddingContractMock = artifacts.require('BiddingContractMock');
+const MockBiddingContract = artifacts.require('MockBiddingContract');
 const MockERC20 = artifacts.require('MockERC20');
 
-const mintFee = new BN('5'); // mintFee
-const platformFee = new BN('75'); // marketplace platform fee: 7.5%
+const mintFee = web3.utils.toWei('5', 'ether'); // mintFee
+const platformFee = web3.utils.toWei('75', 'wei'); // marketplace platform fee: 7.5%
 const nonExistentTokenId = new BN('999');
 
 
@@ -56,24 +56,36 @@ contract('PricyAuction', (accounts) => {
         this.pricyTokenRegistry.add(this.mockToken.address, {from: admin} );
         
         this.pricyAddressRegistry = await PricyAddressRegistry.new({from: admin} );
-        
-        this.pricyMarketplace = await PricyMarketplace.new({ from: admin });
-        await this.pricyMarketplace.initialize(platformFeeAddress, platformFee, { from: admin });   
-        await this.pricyMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });             
-        
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.new({ from: admin });
-        await this.pricyBundleMarketplace.initialize(platformFeeAddress, platformFee, { from: admin });
-        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });
+               
+        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
+        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeAddress, platformFee], { from: admin,  initializer: 'initialize', kind: 'uups' });
+        await this.pricyMarketplaceEthers.waitForDeployment();
+        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
+        this.pricyMarketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
+        await this.pricyMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });        
+                    
+        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
+        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeAddress, platformFee], {from: admin, initializer: 'initialize', kind: 'uups' });
+        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
+        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
+        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);
+        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });                   
         
         this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockToken.address, { from: admin });        
                     
-        this.auction = await PricyAuction.new({from: admin} 
-            //platformFeeAddress,
-            //{from: admin} 
-        );
-        await this.auction.initialize(platformFeeAddress, {from: admin} );
-        await this.auction.updatePlatformFee(platformFee, {from: admin} );
+        //this.auction = await PricyAuction.new({from: admin} 
+        //    //platformFeeAddress,
+        //    //{from: admin} 
+        //);
+        //await this.auction.initialize(platformFeeAddress, {from: admin} );
+        //await this.auction.updatePlatformFee(platformFee, {from: admin} );
+        const Auction = await ethers.getContractFactory('MockPricyAuction');
+        this.pricyAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeAddress, platformFee], { from: admin, initializer: 'initialize', kind: 'uups' });
+        await this.pricyAuctionEthers.waitForDeployment();
+        this.pricyAuctionEthers.address = await this.pricyAuctionEthers.getAddress();  
+        this.auction = await PricyAuction.at(this.pricyAuctionEthers.address);               
         await this.auction.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin }); 
+                
                                     
         await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address, {from: admin} );        
         await this.pricyAddressRegistry.updateMarketplace(this.pricyMarketplace.address, { from: admin });
@@ -96,11 +108,13 @@ contract('PricyAuction', (accounts) => {
 
         describe('Contract deployment', () => {
             it('Reverts when platform fee recipient is zero', async () => {
-                let pa = await PricyAuction.new({
-                    from: admin
-                });
+                //let pa = await PricyAuctionReal.new({
+                //    from: admin
+                //});
+                const Auction = await ethers.getContractFactory('MockPricyAuction');
                 await expectRevert(
-                    pa.initialize(constants.ZERO_ADDRESS),
+                    //pa.initialize(constants.ZERO_ADDRESS, platformFee),
+                    upgrades.deployProxy(Auction, [constants.ZERO_ADDRESS, platformFee], {from: admin, initializer: 'initialize', kind: 'uups' }),
                     "PricyAuction: Invalid Platform Fee Recipient"
                 );
             });
@@ -113,7 +127,7 @@ contract('PricyAuction', (accounts) => {
                 beforeEach(async () => {
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                 });
     
@@ -121,7 +135,12 @@ contract('PricyAuction', (accounts) => {
                     //await this.auction.setNowOverride('12');
                     await this.auction.setTime('12');
                     await expectRevert(
-                        this.auction.createAuction(this.nft.address, TOKEN_ONE_ID, USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, '1', '11', false, '100000', {
+                        this.auction.createAuction(this.nft.address, 
+                        TOKEN_ONE_ID, USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, 
+                        ether('1'), 
+                        web3.utils.toBN('11'), 
+                        false, 
+                        web3.utils.toBN('100000'), {
                             from: minter
                         }),
                         "invalid start time"
@@ -172,7 +191,7 @@ contract('PricyAuction', (accounts) => {
                     await this.auction.setTime('2');
                     await this.nft.mint(bidder, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                                    
                     await this.auction.createAuction(this.nft.address, TOKEN_ONE_ID, USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, '1', '5', false, '305', {
@@ -194,7 +213,7 @@ contract('PricyAuction', (accounts) => {
                         this.auction.createAuction(this.nft.address, '99', USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, '1', '15', false, '345', {
                             from: minter
                         }),
-                        'ERC721: owner query for nonexistent token'
+                        'ERC721: invalid token ID'
                     );
                 });
     
@@ -208,7 +227,7 @@ contract('PricyAuction', (accounts) => {
                         this.auction.createAuction(this.nft.address, TOKEN_ONE_ID, USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, '1', '5', false, '305', {
                             from: minter
                         }),
-                        "contract paused"
+                        "Pausable: paused"
                     );
                 });
             });
@@ -219,7 +238,7 @@ contract('PricyAuction', (accounts) => {
                     await this.auction.setTime('2');               
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     await this.auction.createAuction(this.nft.address, TOKEN_ONE_ID, USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockToken.address, '1', '5', false, '305', {
                         from: minter
@@ -238,11 +257,11 @@ contract('PricyAuction', (accounts) => {
                 beforeEach(async () => {
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     //await this.auction.setNowOverride('2');
                     await this.auction.setTime('2');
@@ -257,7 +276,7 @@ contract('PricyAuction', (accounts) => {
                 });
     
                 it('will revert if sender is smart contract', async () => {
-                    this.biddingContract = await BiddingContractMock.new(this.auction.address);
+                    this.biddingContract = await MockBiddingContract.new(this.auction.address);
                     await expectRevert(
                         this.biddingContract.bid(this.nft.address, TOKEN_ONE_ID, ether('0.2'), {
                             from: bidder,
@@ -308,7 +327,7 @@ contract('PricyAuction', (accounts) => {
                             from: bidder,
                             value: USE_ZERO_ADDRESS_TOKEN ? ether('1.0') : 0
                         }),
-                        "'contract paused"
+                        "Pausable: paused"
                     );
                 });
     
@@ -339,7 +358,7 @@ contract('PricyAuction', (accounts) => {
                 beforeEach(async () => {
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     //await this.auction.setNowOverride('1');
                     await this.auction.setTime('1');
@@ -563,7 +582,7 @@ contract('PricyAuction', (accounts) => {
             beforeEach(async () => {
                 await this.nft.mint(minter, randomTokenURI, {
                     from: minter,
-                    value: ether(mintFee)
+                    value: mintFee
                 });
                 //await this.auction.setNowOverride('2');
                 await this.auction.setTime('2');
@@ -651,7 +670,7 @@ contract('PricyAuction', (accounts) => {
                     this.auction.withdrawBid(this.nft.address, TOKEN_ONE_ID, {
                         from: bidder
                     }),
-                    "contract paused"
+                    "Pausable: paused"
                 );
             });
     
@@ -703,7 +722,7 @@ contract('PricyAuction', (accounts) => {
                 beforeEach(async () => {
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     //await this.auction.setNowOverride('2');
                     await this.auction.setTime('2');
@@ -821,7 +840,7 @@ contract('PricyAuction', (accounts) => {
                 beforeEach(async () => {
                     await this.nft.mint(minter, randomTokenURI, {
                         from: minter,
-                        value: ether(mintFee)
+                        value: mintFee
                     });
                     //await this.auction.setNowOverride('2');
                     await this.auction.setTime('2');
@@ -984,7 +1003,7 @@ contract('PricyAuction', (accounts) => {
             beforeEach(async () => {
                 await this.nft.mint(minter, randomTokenURI, {
                     from: minter,
-                    value: ether(mintFee)
+                    value: mintFee
                 });
                 //await this.auction.setNowOverride('2');
                 await this.auction.setTime('2');
@@ -1145,7 +1164,7 @@ contract('PricyAuction', (accounts) => {
             beforeEach(async () => {
                 await this.nft.mint(minter, randomTokenURI, {
                     from: minter,
-                    value: ether(mintFee)
+                    value: mintFee
                 });
                 //await this.auction.setNowOverride('2');
                 await this.auction.setTime('2');
@@ -1270,7 +1289,7 @@ contract('PricyAuction', (accounts) => {
                     const adminTracker = await balance.tracker(admin);
                                     
                     if (USE_ZERO_ADDRESS_TOKEN) {
-                      await this.nft.mint(minter, randomTokenURI, { from: minter, value: ether(mintFee) });
+                      await this.nft.mint(minter, randomTokenURI, { from: minter, value: mintFee });
                       await this.auction.setTime('2');     
                       await this.auction.createAuction( this.nft.address, TOKEN_ONE_ID, ZERO_ADDRESS, '1', '5', false, '305', { from: minter } )    
                       await this.auction.setTime('12');                
@@ -1306,6 +1325,7 @@ contract('PricyAuction', (accounts) => {
                 });
             });
         });
+
     } // for
     
     async function getGasCosts(receipt) {
