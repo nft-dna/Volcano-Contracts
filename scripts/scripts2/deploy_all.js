@@ -16,13 +16,13 @@ async function main(network) {
   
     /*
     ///////////
-    const Artion = await ethers.getContractFactory('PricyCom');
-    //console.log( ' getContractFactory(PricyCom)');
+    const Artion = await ethers.getContractFactory('VolcanoCom');
+    //console.log( ' getContractFactory(VolcanoCom)');
     const artion = await Artion.deploy(TREASURY_ADDRESS, '2000000000000000000');
     //console.log( ' await Artion.deploy');
   
     await artion.deployed();  
-    console.log('PricyCom deployed at', artion.address);
+    console.log('VolcanoCom deployed at', artion.address);
     //////////
     */
 
@@ -41,7 +41,7 @@ async function main(network) {
     */
 
     /////////
-    const Marketplace = await ethers.getContractFactory('PricyMarketplace');
+    const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
     const marketplaceProxy = await upgrades.deployProxy(Marketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
     await marketplaceProxy.waitForDeployment();
     console.log('Marketplace Proxy deployed at ', await marketplaceProxy.getAddress());
@@ -49,7 +49,7 @@ async function main(network) {
     /////////
 
     /////////
-    const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
+    const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
     const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
     await bundleMarketplaceProxy.waitForDeployment();
     console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
@@ -57,7 +57,7 @@ async function main(network) {
     ////////
 
     ////////
-    const Auction = await ethers.getContractFactory('PricyAuction');
+    const Auction = await ethers.getContractFactory('VolcanoAuction');
     const auctionProxy = await upgrades.deployProxy(Auction, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
     await auctionProxy.waitForDeployment(); 
     console.log('Auction Proxy deployed at ', await auctionProxy.getAddress());
@@ -66,62 +66,62 @@ async function main(network) {
        
 
     ///////
-    const pricyERC721Factory = await ethers.getContractFactory('PricyERC721Factory');
-    const erc721Factory = await pricyERC721Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
+    const volcanoERC721Factory = await ethers.getContractFactory('VolcanoERC721Factory');
+    const erc721Factory = await volcanoERC721Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
     await erc721Factory.waitForDeployment();        
-    console.log('PricyERC721Factory deployed to:', await erc721Factory.getAddress());
+    console.log('VolcanoERC721Factory deployed to:', await erc721Factory.getAddress());
     ///////
    
 
     ///////
-    const pricyERC721Tradable = await ethers.getContractFactory('PricyERC721Tradable');   
-    const erc721Tradable = await pricyERC721Tradable.deploy('PricyERC721', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
+    const volcanoERC721Tradable = await ethers.getContractFactory('VolcanoERC721Tradable');   
+    const erc721Tradable = await volcanoERC721Tradable.deploy('VolcanoERC721', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
     await erc721Tradable.waitForDeployment();    
-    console.log('PricyERC721Tradable deployed to:', await erc721Tradable.getAddress());
+    console.log('VolcanoERC721Tradable deployed to:', await erc721Tradable.getAddress());
     ////////
     
     ////////
-    const pricyERC1155Factory = await ethers.getContractFactory('PricyERC1155Factory');
-    const erc1155Factory = await pricyERC1155Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
+    const volcanoERC1155Factory = await ethers.getContractFactory('VolcanoERC1155Factory');
+    const erc1155Factory = await volcanoERC1155Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
     await erc1155Factory.waitForDeployment();
-    console.log('PricyERC1155Factory deployed to:', await erc1155Factory.getAddress());
+    console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
     ////////
     
     ////////
-    const pricyERC1155Tradable = await ethers.getContractFactory('PricyERC1155Tradable');
-    const erc1155Tradable = await pricyERC1155Tradable.deploy('PricyERC1155', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
+    const volcanoERC1155Tradable = await ethers.getContractFactory('VolcanoERC1155Tradable');
+    const erc1155Tradable = await volcanoERC1155Tradable.deploy('VolcanoERC1155', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
     await erc1155Tradable.waitForDeployment();
-    console.log('PricyERC1155Tradable deployed to:', await erc1155Tradable.getAddress());
+    console.log('VolcanoERC1155Tradable deployed to:', await erc1155Tradable.getAddress());
     ///////
     
     ////////
-    const TokenRegistry = await ethers.getContractFactory('PricyTokenRegistry');
+    const TokenRegistry = await ethers.getContractFactory('VolcanoTokenRegistry');
     const tokenRegistry = await TokenRegistry.deploy();
     await tokenRegistry.waitForDeployment(); 
-    console.log('PricyTokenRegistry deployed to', await tokenRegistry.getAddress());
+    console.log('VolcanoTokenRegistry deployed to', await tokenRegistry.getAddress());
     ////////
 
     ////////
-    const AddressRegistry = await ethers.getContractFactory('PricyAddressRegistry');
+    const AddressRegistry = await ethers.getContractFactory('VolcanoAddressRegistry');
     const addressRegistry = await AddressRegistry.deploy();
     await addressRegistry.waitForDeployment();  
-    console.log('PricyAddressRegistry deployed to', await addressRegistry.getAddress());
+    console.log('VolcanoAddressRegistry deployed to', await addressRegistry.getAddress());
     const PRICYCOM_ADDRESS_REGISTRY = await addressRegistry.getAddress();
     ////////
 
     ////////
-    const PriceFeed = await ethers.getContractFactory('PricyPriceFeed');
+    const PriceFeed = await ethers.getContractFactory('VolcanoPriceFeed');
     const WRAPPED_FTM = network.name === 'mainnet' ? WRAPPED_FTM_MAINNET : WRAPPED_FTM_TESTNET;
     const priceFeed = await PriceFeed.deploy( PRICYCOM_ADDRESS_REGISTRY, WRAPPED_FTM);
     await priceFeed.waitForDeployment();  
-    console.log('PricyPriceFeed deployed to', await priceFeed.getAddress());
+    console.log('VolcanoPriceFeed deployed to', await priceFeed.getAddress());
     ////////
     
     await marketplaceProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);   
     await bundleMarketplaceProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY); 
     await auctionProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);    
     
-    //await addressRegistry.updatePricyCom(artion.address);
+    //await addressRegistry.updateVolcanoCom(artion.address);
     await addressRegistry.updateAuction(AUCTION_PROXY_ADDRESS);
     await addressRegistry.updateMarketplace(MARKETPLACE_PROXY_ADDRESS);
     await addressRegistry.updateBundleMarketplace(BUNDLE_MARKETPLACE_PROXY_ADDRESS);

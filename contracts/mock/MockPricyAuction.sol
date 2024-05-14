@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import "../PricyAuction.sol";
+import "../VolcanoAuction.sol";
 
-contract MockPricyAuction is PricyAuction {
+contract MockVolcanoAuction is VolcanoAuction {
     uint256 public time;
 
     function setTime(uint256 t) public {

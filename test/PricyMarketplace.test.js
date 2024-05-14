@@ -12,19 +12,19 @@ const {
     expect
 } = require('chai');
 
-const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyCom = artifacts.require('MockPricyERC721Tradable');
-const PricyMarketplace = artifacts.require('PricyMarketplace');
-const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
+const VolcanoAddressRegistry = artifacts.require('VolcanoAddressRegistry');
+const VolcanoCom = artifacts.require('MockVolcanoERC721Tradable');
+const VolcanoMarketplace = artifacts.require('VolcanoMarketplace');
+const VolcanoBundleMarketplace = artifacts.require('VolcanoBundleMarketplace');
 const MockERC20 = artifacts.require('MockERC20');
-const PricyTokenRegistry = artifacts.require('PricyTokenRegistry');
-const PricyPriceFeed = artifacts.require('PricyPriceFeed');
+const VolcanoTokenRegistry = artifacts.require('VolcanoTokenRegistry');
+const VolcanoPriceFeed = artifacts.require('VolcanoPriceFeed');
 
 const weiToEther = (n) => {
     return web3.utils.fromWei(n.toString(), 'ether');
 }
 
-contract('Core ERC721 tests for PricyCom', function([
+contract('Core ERC721 tests for VolcanoCom', function([
     owner,
     minter,
     buyer,
@@ -44,7 +44,7 @@ contract('Core ERC721 tests for PricyCom', function([
 
     beforeEach(async function() {
         //console.log(`beforeEach called`);
-        this.nft = await PricyCom.new(owner, ether(mintFee));
+        this.nft = await VolcanoCom.new(owner, ether(mintFee));
         let firstTokenresult = await this.nft.mint(minter, randomTokenURI, {
             from: owner,
             value: ether(mintFee)
@@ -54,40 +54,40 @@ contract('Core ERC721 tests for PricyCom', function([
             value: ether(mintFee)
         });
                 
-        this.pricyAddressRegistry = await PricyAddressRegistry.new({ from: owner });
-        this.pricyTokenRegistry = await PricyTokenRegistry.new({ from: owner });
+        this.volcanoAddressRegistry = await VolcanoAddressRegistry.new({ from: owner });
+        this.volcanoTokenRegistry = await VolcanoTokenRegistry.new({ from: owner });
         this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'), { from: owner });
-        this.pricyTokenRegistry.add(this.mockERC20.address, { from: owner });
+        this.volcanoTokenRegistry.add(this.mockERC20.address, { from: owner });
                         
-        //this.marketplace = await PricyMarketplace.new({ from: owner });
+        //this.marketplace = await VolcanoMarketplace.new({ from: owner });
         //await this.marketplace.initialize(feeRecipient, platformFee, { from: owner });
-        //await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });       
+        //await this.marketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: owner });       
                         
-        //this.pricyBundleMarketplace = await PricyBundleMarketplace.new({ from: owner });
-        //await this.pricyBundleMarketplace.initialize(feeRecipient, platformFee, { from: owner });
-        //await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });
+        //this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.new({ from: owner });
+        //await this.volcanoBundleMarketplace.initialize(feeRecipient, platformFee, { from: owner });
+        //await this.volcanoBundleMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: owner });
         
-        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
-        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [feeRecipient, platformFee], { from: owner,  initializer: 'initialize', kind: 'uups' });
-        await this.pricyMarketplaceEthers.waitForDeployment();
-        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
-        this.marketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
-        await this.marketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });        
+        const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
+        this.volcanoMarketplaceEthers = await upgrades.deployProxy(Marketplace, [feeRecipient, platformFee], { from: owner,  initializer: 'initialize', kind: 'uups' });
+        await this.volcanoMarketplaceEthers.waitForDeployment();
+        this.volcanoMarketplaceEthers.address = await this.volcanoMarketplaceEthers.getAddress(); 
+        this.marketplace = await VolcanoMarketplace.at(this.volcanoMarketplaceEthers.address);      
+        await this.marketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: owner });        
                     
-        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
-        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [feeRecipient, platformFee], {from: owner, initializer: 'initialize', kind: 'uups' });
-        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
-        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);
-        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: owner });
+        const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
+        this.volcanoBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [feeRecipient, platformFee], {from: owner, initializer: 'initialize', kind: 'uups' });
+        await this.volcanoBundleMarketplaceEthers.waitForDeployment();  
+        this.volcanoBundleMarketplaceEthers.address = await this.volcanoBundleMarketplaceEthers.getAddress();  
+        this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.at(this.volcanoBundleMarketplaceEthers.address);
+        await this.volcanoBundleMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: owner });
                 
         
-        this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockERC20.address, { from: owner });
+        this.volcanoPriceFeed = await VolcanoPriceFeed.new(this.volcanoAddressRegistry.address, this.mockERC20.address, { from: owner });
                  
-        await this.pricyAddressRegistry.updateMarketplace(this.marketplace.address, { from: owner });
-        await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address, { from: owner });
-        await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address, { from: owner });
-        await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address, { from: owner });
+        await this.volcanoAddressRegistry.updateMarketplace(this.marketplace.address, { from: owner });
+        await this.volcanoAddressRegistry.updateTokenRegistry(this.volcanoTokenRegistry.address, { from: owner });
+        await this.volcanoAddressRegistry.updateBundleMarketplace(this.volcanoBundleMarketplace.address, { from: owner });
+        await this.volcanoAddressRegistry.updatePriceFeed(this.volcanoPriceFeed.address, { from: owner });
     });
     
     for (t = 0; t <= 1; t = t+1) {

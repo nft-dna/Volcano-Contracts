@@ -9,16 +9,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract PricyERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pausable*/, Ownable, ERC721Burnable {
+contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pausable*/, Ownable, ERC721Burnable {
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    // Pricy Auction contract
+    // Volcano Auction contract
     address auction;
-    // Pricy Marketplace contract
+    // Volcano Marketplace contract
     address marketplace;
-    // Pricy Bundle Marketplace contract
+    // Volcano Bundle Marketplace contract
     address bundleMarketplace;
 
     bool isprivate;
@@ -161,7 +161,7 @@ contract PricyERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pa
     }
 
     /**
-     * Override isApprovedForAll to whitelist Pricy contracts to enable gas-less listings.
+     * Override isApprovedForAll to whitelist Volcano contracts to enable gas-less listings.
      */
     function isApprovedForAll(address owner, address operator)
         override(ERC721, IERC721)
@@ -169,7 +169,7 @@ contract PricyERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pa
         view
         returns (bool)
     {
-        // Whitelist Pricy auction, marketplace, bundle marketplace contracts for easy trading.
+        // Whitelist Volcano auction, marketplace, bundle marketplace contracts for easy trading.
         if (
             auction == operator ||
             marketplace == operator ||
@@ -182,7 +182,7 @@ contract PricyERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pa
     }
 
     /**
-     * Override _isApprovedOrOwner to whitelist Pricy contracts to enable gas-less listings.
+     * Override _isApprovedOrOwner to whitelist Volcano contracts to enable gas-less listings.
      */
     function _isApprovedOrOwner(address spender, uint256 tokenId) override internal view returns (bool) {
         require(_exists(tokenId), "ERC721: operator query for nonexistent token");

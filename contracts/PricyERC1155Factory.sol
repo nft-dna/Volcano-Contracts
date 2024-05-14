@@ -2,20 +2,20 @@
 pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./PricyERC1155Tradable.sol";
+import "./VolcanoERC1155Tradable.sol";
 
-contract PricyERC1155Factory is Ownable {
+contract VolcanoERC1155Factory is Ownable {
     /// @dev Events of the contract
     event ContractCreated(address creator, address nft, bool isprivate);
     event ContractDisabled(address caller, address nft);
 
-    /// @notice Pricy auction contract address;
+    /// @notice Volcano auction contract address;
     address public auction;
 
-    /// @notice Pricy marketplace contract address;
+    /// @notice Volcano marketplace contract address;
     address public marketplace;
 
-    /// @notice Pricy bundle marketplace contract address;
+    /// @notice Volcano bundle marketplace contract address;
     address public bundleMarketplace;
 
     /// @notice Platform fee for deploying new NFT contract
@@ -94,7 +94,7 @@ contract PricyERC1155Factory is Ownable {
         feeRecipient = _feeRecipient;
     }
 
-    /// @notice Method for deploy new PricyERC1155Tradable contract
+    /// @notice Method for deploy new VolcanoERC1155Tradable contract
     /// @param _name Name of NFT contract
     /// @param _symbol Symbol of NFT contract
     function createNFTContract(string memory _name, string memory _symbol, bool _private, uint256 _mintFee, uint256 _creatorFee, address payable _feeRecipient)
@@ -108,7 +108,7 @@ contract PricyERC1155Factory is Ownable {
         	require(success, "Transfer failed");
 	}
 
-        PricyERC1155Tradable nft = new PricyERC1155Tradable(
+        VolcanoERC1155Tradable nft = new VolcanoERC1155Tradable(
             _name,
             _symbol,
             auction,
@@ -126,7 +126,7 @@ contract PricyERC1155Factory is Ownable {
         return address(nft);
     }
 
-    /// @notice Method for registering existing PricyERC1155Tradable contract
+    /// @notice Method for registering existing VolcanoERC1155Tradable contract
     /// @param  tokenContractAddress Address of NFT contract
     function registerTokenContract(address tokenContractAddress, bool _isprivate)
         external
@@ -139,7 +139,7 @@ contract PricyERC1155Factory is Ownable {
         emit ContractCreated(_msgSender(), tokenContractAddress, _isprivate);
     }
 
-    /// @notice Method for disabling existing PricyERC1155Tradable contract
+    /// @notice Method for disabling existing VolcanoERC1155Tradable contract
     /// @param  tokenContractAddress Address of NFT contract
     function disableTokenContract(address tokenContractAddress)
         external

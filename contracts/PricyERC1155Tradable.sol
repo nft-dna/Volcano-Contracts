@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract PricyERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply {
+contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply {
     
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -17,11 +17,11 @@ contract PricyERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable
     // Contract symbol
     string public symbol;    
 
-    // Pricy Auction contract
+    // Volcano Auction contract
     address auction;
-    // Pricy Marketplace contract
+    // Volcano Marketplace contract
     address marketplace;
-    // Pricy Bundle Marketplace contract
+    // Volcano Bundle Marketplace contract
     address bundleMarketplace;
 
     bool isprivate;   
@@ -144,7 +144,7 @@ contract PricyERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable
     }
 
     /**
-     * Override isApprovedForAll to whitelist Pricy contracts to enable gas-less listings.
+     * Override isApprovedForAll to whitelist Volcano contracts to enable gas-less listings.
      */
     function isApprovedForAll(address _owner, address _operator)
         public
@@ -152,7 +152,7 @@ contract PricyERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable
         override
         returns (bool isOperator)
     {
-        // Whitelist Pricy auction, marketplace, bundle marketplace contracts for easy trading.
+        // Whitelist Volcano auction, marketplace, bundle marketplace contracts for easy trading.
         if (
             auction == _operator ||
             marketplace == _operator ||

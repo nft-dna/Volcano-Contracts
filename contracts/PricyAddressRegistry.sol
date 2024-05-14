@@ -4,54 +4,54 @@ pragma solidity 0.8.21;
 //import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract PricyAddressRegistry is Ownable {
+contract VolcanoAddressRegistry is Ownable {
     //bytes4 private constant INTERFACE_ID_ERC721 = 0x80ac58cd;
 
-    /// @notice PricyCom contract
-    //address public pricycom;
+    /// @notice VolcanoCom contract
+    //address public volcanocom;
 
-    /// @notice PricyAuction contract
+    /// @notice VolcanoAuction contract
     address public auction;
 
-    /// @notice PricyMarketplace contract
+    /// @notice VolcanoMarketplace contract
     address public marketplace;
 
-    /// @notice PricyBundleMarketplace contract
+    /// @notice VolcanoBundleMarketplace contract
     address public bundleMarketplace;
 
-    /// @notice PricyERC721Factory contract
+    /// @notice VolcanoERC721Factory contract
     address public erc721factory;
 
-    /// @notice PricyERC721FactoryPrivate contract
+    /// @notice VolcanoERC721FactoryPrivate contract
     address public privateErc721Factory;
 
-    /// @notice PricyErc1155Factory contract
+    /// @notice VolcanoErc1155Factory contract
     address public erc1155Factory;
 
-    /// @notice PricyErc1155FactoryPrivate contract
+    /// @notice VolcanoErc1155FactoryPrivate contract
     address public privateErc1155Factory;
 
-    /// @notice PricyTokenRegistry contract
+    /// @notice VolcanoTokenRegistry contract
     address public tokenRegistry;
 
-    /// @notice PricyPriceFeed contract
+    /// @notice VolcanoPriceFeed contract
     address public priceFeed;
 
     /**
-     @notice Update PricyCom contract
+     @notice Update VolcanoCom contract
      @dev Only admin
 
-    function updatePricyCom(address _pricycom) external onlyOwner {
+    function updateVolcanoCom(address _volcanocom) external onlyOwner {
         require(
-            IERC165(_pricycom).supportsInterface(INTERFACE_ID_ERC721),
+            IERC165(_volcanocom).supportsInterface(INTERFACE_ID_ERC721),
             "Not ERC721"
         );
-        pricycom = _pricycom;
+        volcanocom = _volcanocom;
     }
      */
 
     /**
-     @notice Update PricyAuction contract
+     @notice Update VolcanoAuction contract
      @dev Only admin
      */
     function updateAuction(address _auction) 
@@ -62,7 +62,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyMarketplace contract
+     @notice Update VolcanoMarketplace contract
      @dev Only admin
      */
     function updateMarketplace(address _marketplace) 
@@ -73,7 +73,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyBundleMarketplace contract
+     @notice Update VolcanoBundleMarketplace contract
      @dev Only admin
      */
     function updateBundleMarketplace(address _bundleMarketplace)
@@ -84,7 +84,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyErc721Factory contract
+     @notice Update VolcanoErc721Factory contract
      @dev Only admin
      */
     function updateErc721Factory(address _erc721factory) 
@@ -95,7 +95,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyErc721FactoryPrivate contract
+     @notice Update VolcanoErc721FactoryPrivate contract
      @dev Only admin
      */
     function updateErc721FactoryPrivate(address _privateErc721Factory)
@@ -106,7 +106,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyErc1155Factory contract
+     @notice Update VolcanoErc1155Factory contract
      @dev Only admin
      */
     function updateErc1155Factory(address _erc1155Factory) 
@@ -117,7 +117,7 @@ contract PricyAddressRegistry is Ownable {
     }
 
     /**
-     @notice Update PricyErc1155FactoryPrivate contract
+     @notice Update VolcanoErc1155FactoryPrivate contract
      @dev Only admin
      */
     function updateErc1155FactoryPrivate(address _privateErc1155Factory)

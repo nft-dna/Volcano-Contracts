@@ -1,1 +1,1 @@
-# Smart contracts for Pricy Marketplace
+# Smart contracts for Volcano Marketplace

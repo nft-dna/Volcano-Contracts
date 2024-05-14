@@ -2,7 +2,7 @@
 // run first (in another shell): npx hardhat node
 //   on Error: Cannot find module '@openzeppelin/test-helpers'
 //     yarn add @openzeppelin/test-helpers
-// if you prefer instead of MockPricyAuction you could install
+// if you prefer instead of MockVolcanoAuction you could install
 // and get\increase timestamps, i.e.: await helpers.time.increase(3600);
 const {
     expectRevert,
@@ -18,16 +18,16 @@ const { ZERO_ADDRESS } = constants;
 
 const {expect} = require('chai');
 
-const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyERC721 = artifacts.require('MockPricyERC721Tradable');
-const PricyAuction = artifacts.require('MockPricyAuction');
-const PricyMarketplace = artifacts.require('PricyMarketplace');
-const PricyMarketplaceUpgraded = artifacts.require('PricyMarketplaceUpgraded');
-const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
-const PricyERC721Factory = artifacts.require('PricyERC721Factory');
-const PricyERC1155Factory = artifacts.require('PricyERC1155Factory');
-const PricyTokenRegistry = artifacts.require('PricyTokenRegistry');
-const PricyPriceFeed = artifacts.require('PricyPriceFeed');
+const VolcanoAddressRegistry = artifacts.require('VolcanoAddressRegistry');
+const VolcanoERC721 = artifacts.require('MockVolcanoERC721Tradable');
+const VolcanoAuction = artifacts.require('MockVolcanoAuction');
+const VolcanoMarketplace = artifacts.require('VolcanoMarketplace');
+const VolcanoMarketplaceUpgraded = artifacts.require('VolcanoMarketplaceUpgraded');
+const VolcanoBundleMarketplace = artifacts.require('VolcanoBundleMarketplace');
+const VolcanoERC721Factory = artifacts.require('VolcanoERC721Factory');
+const VolcanoERC1155Factory = artifacts.require('VolcanoERC1155Factory');
+const VolcanoTokenRegistry = artifacts.require('VolcanoTokenRegistry');
+const VolcanoPriceFeed = artifacts.require('VolcanoPriceFeed');
 const MockERC20 = artifacts.require('MockERC20');
 
 
@@ -54,79 +54,79 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
     beforeEach(async function () {
         
 
-        this.pricyAddressRegistry = await PricyAddressRegistry.new();
-        this.erc721nft = await PricyERC721.new(platformFeeRecipient, mintCost);
+        this.volcanoAddressRegistry = await VolcanoAddressRegistry.new();
+        this.erc721nft = await VolcanoERC721.new(platformFeeRecipient, mintCost);
 
-        //this.pricyAuction = await PricyAuction.new();
-        //await this.pricyAuction.initialize(platformFeeRecipient, auctionPlatformFee);
-        //await this.pricyAuction.updatePlatformFee(actionPlatformFee);
-        ////this.pricyAuction = await deployProxy(PricyAuction, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
-        const Auction = await ethers.getContractFactory('MockPricyAuction');
-        this.pricyAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeRecipient, auctionPlatformFee], { initializer: 'initialize', kind: 'uups' });
-        await this.pricyAuctionEthers.waitForDeployment();
-        this.pricyAuctionEthers.address = await this.pricyAuctionEthers.getAddress();  
-        this.pricyAuction = await PricyAuction.at(this.pricyAuctionEthers.address);                    
-        await this.pricyAuction.updateAddressRegistry(this.pricyAddressRegistry.address);
+        //this.volcanoAuction = await VolcanoAuction.new();
+        //await this.volcanoAuction.initialize(platformFeeRecipient, auctionPlatformFee);
+        //await this.volcanoAuction.updatePlatformFee(actionPlatformFee);
+        ////this.volcanoAuction = await deployProxy(VolcanoAuction, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
+        const Auction = await ethers.getContractFactory('MockVolcanoAuction');
+        this.volcanoAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeRecipient, auctionPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.volcanoAuctionEthers.waitForDeployment();
+        this.volcanoAuctionEthers.address = await this.volcanoAuctionEthers.getAddress();  
+        this.volcanoAuction = await VolcanoAuction.at(this.volcanoAuctionEthers.address);                    
+        await this.volcanoAuction.updateAddressRegistry(this.volcanoAddressRegistry.address);
 
-        //this.pricyMarketplace = await PricyMarketplace.new();
-        //await this.pricyMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
-        ////this.pricyMarketplace = await deployProxy(PricyMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
-        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
-        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
-        await this.pricyMarketplaceEthers.waitForDeployment();
-        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
-        this.pricyMarketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
-        await this.pricyMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address);
+        //this.volcanoMarketplace = await VolcanoMarketplace.new();
+        //await this.volcanoMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
+        ////this.volcanoMarketplace = await deployProxy(VolcanoMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });        
+        const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
+        this.volcanoMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.volcanoMarketplaceEthers.waitForDeployment();
+        this.volcanoMarketplaceEthers.address = await this.volcanoMarketplaceEthers.getAddress(); 
+        this.volcanoMarketplace = await VolcanoMarketplace.at(this.volcanoMarketplaceEthers.address);      
+        await this.volcanoMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address);
 
-        //this.pricyBundleMarketplace = await PricyBundleMarketplace.new();
-        //await this.pricyBundleMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
-        ////this.pricyBundleMarketplace = await deployProxy(PricyBundleMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });
-        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
-        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
-        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
-        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);           
-        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address);
+        //this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.new();
+        //await this.volcanoBundleMarketplace.initialize(platformFeeRecipient, marketPlatformFee);
+        ////this.volcanoBundleMarketplace = await deployProxy(VolcanoBundleMarketplace, [platformFeeRecipient, auctionPlatformFee], { owner, initializer: 'initialize', kind: 'uups' });
+        const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
+        this.volcanoBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeRecipient, marketPlatformFee], { initializer: 'initialize', kind: 'uups' });
+        await this.volcanoBundleMarketplaceEthers.waitForDeployment();  
+        this.volcanoBundleMarketplaceEthers.address = await this.volcanoBundleMarketplaceEthers.getAddress();  
+        this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.at(this.volcanoBundleMarketplaceEthers.address);           
+        await this.volcanoBundleMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address);
 
-        this.PricyERC721Factory = await PricyERC721Factory.new(this.pricyAuction.address, this.pricyMarketplace.address, this.pricyBundleMarketplace.address, platformFeeRecipient, mintCost);
-        this.pricyTokenRegistry = await PricyTokenRegistry.new();
+        this.VolcanoERC721Factory = await VolcanoERC721Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, mintCost);
+        this.volcanoTokenRegistry = await VolcanoTokenRegistry.new();
 
         this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'));
 
-        this.pricyTokenRegistry.add(this.mockERC20.address);
+        this.volcanoTokenRegistry.add(this.mockERC20.address);
 
-        this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockERC20.address);
+        this.volcanoPriceFeed = await VolcanoPriceFeed.new(this.volcanoAddressRegistry.address, this.mockERC20.address);
 
-        this.PricyERC1155Factory = await PricyERC1155Factory.new(this.pricyAuction.address, this.pricyMarketplace.address, this.pricyBundleMarketplace.address, platformFeeRecipient, mintCost);
+        this.VolcanoERC1155Factory = await VolcanoERC1155Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, mintCost);
 
-        //await this.pricyAddressRegistry.updatePricyCom(this.erc721nft.address);
-        await this.pricyAddressRegistry.updateAuction(this.pricyAuction.address);
-        await this.pricyAddressRegistry.updateMarketplace(this.pricyMarketplace.address);
-        await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address);
-        await this.pricyAddressRegistry.updateErc721Factory(this.PricyERC721Factory.address);
-        await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address);
-        await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address);
-        await this.pricyAddressRegistry.updateErc1155Factory(this.PricyERC1155Factory.address);
+        //await this.volcanoAddressRegistry.updateVolcanoCom(this.erc721nft.address);
+        await this.volcanoAddressRegistry.updateAuction(this.volcanoAuction.address);
+        await this.volcanoAddressRegistry.updateMarketplace(this.volcanoMarketplace.address);
+        await this.volcanoAddressRegistry.updateBundleMarketplace(this.volcanoBundleMarketplace.address);
+        await this.volcanoAddressRegistry.updateErc721Factory(this.VolcanoERC721Factory.address);
+        await this.volcanoAddressRegistry.updateTokenRegistry(this.volcanoTokenRegistry.address);
+        await this.volcanoAddressRegistry.updatePriceFeed(this.volcanoPriceFeed.address);
+        await this.volcanoAddressRegistry.updateErc1155Factory(this.VolcanoERC1155Factory.address);
     });
     
     describe('Proxy test', function() {
     
         it('MarketUpgrade', async function(){ 
         
-        const oldAddress = this.pricyMarketplace.address;
-        const oldRegistryAddress = await this.pricyMarketplace.addressRegistry();
+        const oldAddress = this.volcanoMarketplace.address;
+        const oldRegistryAddress = await this.volcanoMarketplace.addressRegistry();
         //console.log('old address = ', oldAddress, ' - registry: ', oldRegistryAddress);
-        const MarketplaceUpgraded = await ethers.getContractFactory('PricyMarketplaceUpgraded');
-        this.pricyMarketplaceEthersUpgraded = await upgrades.upgradeProxy(this.pricyMarketplaceEthers.address, MarketplaceUpgraded, { kind: 'uups' });
-        await this.pricyMarketplaceEthersUpgraded.waitForDeployment();
-        this.pricyMarketplaceEthersUpgraded.address = await this.pricyMarketplaceEthersUpgraded.getAddress(); 
-        this.pricyMarketplace = await PricyMarketplaceUpgraded.at(this.pricyMarketplaceEthersUpgraded.address); 
-        const newAddress = this.pricyMarketplace.address;
-        const newRegistryAddress = await this.pricyMarketplace.addressRegistry();
+        const MarketplaceUpgraded = await ethers.getContractFactory('VolcanoMarketplaceUpgraded');
+        this.volcanoMarketplaceEthersUpgraded = await upgrades.upgradeProxy(this.volcanoMarketplaceEthers.address, MarketplaceUpgraded, { kind: 'uups' });
+        await this.volcanoMarketplaceEthersUpgraded.waitForDeployment();
+        this.volcanoMarketplaceEthersUpgraded.address = await this.volcanoMarketplaceEthersUpgraded.getAddress(); 
+        this.volcanoMarketplace = await VolcanoMarketplaceUpgraded.at(this.volcanoMarketplaceEthersUpgraded.address); 
+        const newAddress = this.volcanoMarketplace.address;
+        const newRegistryAddress = await this.volcanoMarketplace.addressRegistry();
         //console.log('new address = ', newAddress, ' - registry: ', newRegistryAddress);
         expect(oldAddress).to.be.equal(newAddress); 
         expect(oldRegistryAddress).to.be.equal(newRegistryAddress); 
-        expect(await this.pricyMarketplace.version()).to.be.bignumber.equal('2');             
+        expect(await this.volcanoMarketplace.version()).to.be.bignumber.equal('2');             
           
         }); 
     });
@@ -199,12 +199,12 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             *The artist approves the nft to the market`);
-            await this.erc721nft.setApprovalForAll(this.pricyMarketplace.address, true, {from: artist});
+            await this.erc721nft.setApprovalForAll(this.volcanoMarketplace.address, true, {from: artist});
 
             console.log(`
             *The artist lists the nft in the market with price 20 wFTM and starting time 2021-09-22 10:00:00 GMT`);
             
-            await this.pricyMarketplace.listItem(
+            await this.volcanoMarketplace.listItem(
                     this.erc721nft.address,
                     new BN('1'),
                     new BN('1'),
@@ -214,7 +214,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
                     { from : artist }
                     );
             
-            let listing = await this.pricyMarketplace.listings(this.erc721nft.address, new BN('1'), artist);
+            let listing = await this.volcanoMarketplace.listings(this.erc721nft.address, new BN('1'), artist);
             
             console.log(`
             *The nft should be on the marketplace listing`);
@@ -232,14 +232,14 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               Mint 50 wFTMs to buyer so he can buy the nft`);
               await this.mockERC20.mint(buyer, web3.utils.toWei('50', 'ether'));
               console.log(`
-              Buyer approves PricyMarketplace to transfer up to 50 wFTM`);              
-              await this.mockERC20.approve(this.pricyMarketplace.address, web3.utils.toWei('50', 'ether'), {from: buyer});
+              Buyer approves VolcanoMarketplace to transfer up to 50 wFTM`);              
+              await this.mockERC20.approve(this.volcanoMarketplace.address, web3.utils.toWei('50', 'ether'), {from: buyer});
             }
             
             console.log(`
             Buyer buys the nft for 20 wFTMs. Balance is: `, weiToEther(USE_ZERO_ADDRESS_TOKEN ? await web3.eth.getBalance(buyer) : await this.mockERC20.balanceOf(buyer)));
             
-            result = await this.pricyMarketplace.buyItem(
+            result = await this.volcanoMarketplace.buyItem(
                 this.erc721nft.address, 
                 new BN('1'), 
                 USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address, 
@@ -295,7 +295,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               expect(weiToEther(addressBalance)*1).to.be.equal(19);
             }
 
-            listing = await this.pricyMarketplace.listings(this.erc721nft.address, web3.utils.toBN('1'), artist);
+            listing = await this.volcanoMarketplace.listings(this.erc721nft.address, web3.utils.toBN('1'), artist);
             console.log(`
             *The nft now should be removed from the listing`);            
             expect(listing.quantity.toString()).to.be.equal('0');
@@ -366,15 +366,15 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             The artist approves the nft to the market`);
-            await this.erc721nft.setApprovalForAll(this.pricyAuction.address, true, {from: artist});
+            await this.erc721nft.setApprovalForAll(this.volcanoAuction.address, true, {from: artist});
 
             console.log(`
             Let's mock that the current time: 2021-09-25 09:00:00`);
-            await this.pricyAuction.setTime(web3.utils.toBN('1632560400'));
+            await this.volcanoAuction.setTime(web3.utils.toBN('1632560400'));
 
             console.log(`
             The artist auctions his nfts with reserve price of 20 wFTMs`);
-            result =  await this.pricyAuction.createAuction(
+            result =  await this.volcanoAuction.createAuction(
                 this.erc721nft.address,
                 web3.utils.toBN('1'),
                 USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address,
@@ -405,24 +405,24 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               await this.mockERC20.mint(bidder1, ether('50'));
   
               console.log(`
-              Bidder1 approves PricyAuction to transfer up to 50 wFTM`);
-              await this.mockERC20.approve(this.pricyAuction.address, ether('50'), {from: bidder1});
+              Bidder1 approves VolcanoAuction to transfer up to 50 wFTM`);
+              await this.mockERC20.approve(this.volcanoAuction.address, ether('50'), {from: bidder1});
   
               console.log(`
               Mint 50 wFTMs to bidder2 so he can bid the auctioned nft`);
               await this.mockERC20.mint(bidder2, ether('50'));
   
               console.log(`
-              Bidder2 approves PricyAuction to transfer up to 50 wFTM`);
-              await this.mockERC20.approve(this.pricyAuction.address, ether('50'), {from: bidder2});
+              Bidder2 approves VolcanoAuction to transfer up to 50 wFTM`);
+              await this.mockERC20.approve(this.volcanoAuction.address, ether('50'), {from: bidder2});
   
               console.log(`
               Mint 50 wFTMs to bidder3 so he can bid the auctioned nft`);
               await this.mockERC20.mint(bidder3, ether('50'));
   
               console.log(`
-              Bidder3 approves PricyAuction to transfer up to 50 wFTM`);
-              await this.mockERC20.approve(this.pricyAuction.address, ether('50'), {from: bidder3});
+              Bidder3 approves VolcanoAuction to transfer up to 50 wFTM`);
+              await this.mockERC20.approve(this.volcanoAuction.address, ether('50'), {from: bidder3});
             }
             
             const bidder1Tracker = await balance.tracker(bidder1);
@@ -433,11 +433,11 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             
             console.log(`
             Let's mock that the current time: 2021-09-25 10:30:00`);
-            await this.pricyAuction.setTime(web3.utils.toBN('1632565800'));
+            await this.volcanoAuction.setTime(web3.utils.toBN('1632565800'));
 
             console.log(`
             Bidder1 place a bid of 20 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('20'), { from: bidder1, value: USE_ZERO_ADDRESS_TOKEN ? ether('20') : 0 });
+            result = await this.volcanoAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('20'), { from: bidder1, value: USE_ZERO_ADDRESS_TOKEN ? ether('20') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
@@ -451,7 +451,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Bidder2 place a bid of 25 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('25'), { from: bidder2, value: USE_ZERO_ADDRESS_TOKEN ? ether('25') : 0 });
+            result = await this.volcanoAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('25'), { from: bidder2, value: USE_ZERO_ADDRESS_TOKEN ? ether('25') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
@@ -471,7 +471,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Bidder3 place a bid of 30 wFTMs`);
-            result = await this.pricyAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('30'), { from: bidder3, value: USE_ZERO_ADDRESS_TOKEN ? ether('30') : 0 });
+            result = await this.volcanoAuction.placeBid(this.erc721nft.address, web3.utils.toBN('1'), ether('30'), { from: bidder3, value: USE_ZERO_ADDRESS_TOKEN ? ether('30') : 0 });
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
@@ -491,11 +491,11 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             Let's mock that the current time: 2021-09-30 11:00:00 so the auction has ended`);
-            await this.pricyAuction.setTime(web3.utils.toBN('1632999600'));
+            await this.volcanoAuction.setTime(web3.utils.toBN('1632999600'));
 
             console.log(`
             The artist tries to make the auction complete`);
-            result = await this.pricyAuction.resultAuction(this.erc721nft.address, web3.utils.toBN('1'), {from : artist});
+            result = await this.volcanoAuction.resultAuction(this.erc721nft.address, web3.utils.toBN('1'), {from : artist});
 
             if (USE_ZERO_ADDRESS_TOKEN)
             {
@@ -616,12 +616,12 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
             console.log(`
             The artist approves the nft to the market`);
-            await this.erc721nft.setApprovalForAll(this.pricyBundleMarketplace.address, true, {from: artist});
+            await this.erc721nft.setApprovalForAll(this.volcanoBundleMarketplace.address, true, {from: artist});
 
             console.log(`
             The artist lists the 2 nfts in the bundle market with price 20 wFTM and 
             starting time 2021-09-22 10:00:00 GMT`);
-            await this.pricyBundleMarketplace.listItem(
+            await this.volcanoBundleMarketplace.listItem(
                     'mynfts',
                     [this.erc721nft.address, this.erc721nft.address],
                     [web3.utils.toBN('1'),web3.utils.toBN('2')],
@@ -632,7 +632,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
                     { from : artist }
                     );
 
-            let listing = await this.pricyBundleMarketplace.getListing(artist, 'mynfts');
+            let listing = await this.volcanoBundleMarketplace.getListing(artist, 'mynfts');
             //console.log(listing);
             console.log(`
             *The nfts should be on the bundle marketplace listing`);
@@ -656,13 +656,13 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
               await this.mockERC20.mint(buyer, ether('50'));
   
               console.log(`
-              The buyer approves PricyBundleMarketplace to transfer up to 50 wFTM`);
-              await this.mockERC20.approve(this.pricyBundleMarketplace.address, ether('50'), {from: buyer});
+              The buyer approves VolcanoBundleMarketplace to transfer up to 50 wFTM`);
+              await this.mockERC20.approve(this.volcanoBundleMarketplace.address, ether('50'), {from: buyer});
             }
             
             console.log(`
             The buyer buys the nft for 20 wFTMs`);
-            result = await this.pricyBundleMarketplace.buyItem(
+            result = await this.volcanoBundleMarketplace.buyItem(
                 'mynfts', 
                 USE_ZERO_ADDRESS_TOKEN ? ZERO_ADDRESS : this.mockERC20.address, 
                 { from: buyer,

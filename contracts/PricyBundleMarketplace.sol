@@ -15,7 +15,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
-interface IPricyAddressRegistry {
+interface IVolcanoAddressRegistry {
     function auction() external view returns (address);
 
     function marketplace() external view returns (address);
@@ -23,7 +23,7 @@ interface IPricyAddressRegistry {
     function tokenRegistry() external view returns (address);
 }
 
-interface IPricyMarketplace {
+interface IVolcanoMarketplace {
     function validateItemSold(
         address,
         uint256,
@@ -34,11 +34,11 @@ interface IPricyMarketplace {
     function getPrice(address) external view returns (int256);
 }
 
-interface IPricyTokenRegistry {
+interface IVolcanoTokenRegistry {
     function enabled(address) external returns (bool);
 }
 
-contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable
+contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable
 {
     using SafeERC20 for IERC20;
     using AddressUpgradeable for address payable;
@@ -123,7 +123,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
     address payable public feeReceipient;
 
     /// @notice Address registry
-    IPricyAddressRegistry public addressRegistry;
+    IVolcanoAddressRegistry public addressRegistry;
 
     modifier onlyContract() {
         require(
@@ -142,7 +142,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
     function initialize(address payable _feeRecipient, uint256 _platformFee) initializer public {
         require(
             _feeRecipient != address(0),
-            "PricyAuction: Invalid Platform Fee Recipient"
+            "VolcanoAuction: Invalid Platform Fee Recipient"
         );
 
         platformFee = _platformFee;
@@ -216,7 +216,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
         require(
             _payToken == address(0) ||
                 (tokenRegistry != address(0) &&
-                    IPricyTokenRegistry(tokenRegistry).enabled(_payToken)),
+                    IVolcanoTokenRegistry(tokenRegistry).enabled(_payToken)),
             "invalid pay token"
         );
 
@@ -298,7 +298,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
         require(
             _payToken == address(0) ||
                 (tokenRegistry != address(0) &&
-                    IPricyTokenRegistry(tokenRegistry).enabled(_payToken)),
+                    IVolcanoTokenRegistry(tokenRegistry).enabled(_payToken)),
             "invalid pay token"
         );
 
@@ -380,9 +380,9 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
         if (_payToken == address(0)) {
             require(msg.value == price , "insufficient or incorrect value to buy");
             (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
-            require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+            require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
             (bool ownerTransferSuccess, ) = owner.call{ value: price - feeAmount }("");
-            require(ownerTransferSuccess, "PricyMarketplace: Owner transfer failed");
+            require(ownerTransferSuccess, "VolcanoMarketplace: Owner transfer failed");
         } else {
             SafeERC20.safeTransferFrom(
                 IERC20(_payToken),
@@ -415,7 +415,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
                     bytes("")
                 );
             }
-            IPricyMarketplace(addressRegistry.marketplace()).validateItemSold(
+            IVolcanoMarketplace(addressRegistry.marketplace()).validateItemSold(
                 listing.nfts[i],
                 listing.tokenIds[i],
                 owner,
@@ -433,7 +433,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
             msg.sender,
             _bundleID,
             _payToken,
-            IPricyMarketplace(addressRegistry.marketplace()).getPrice(_payToken),
+            IVolcanoMarketplace(addressRegistry.marketplace()).getPrice(_payToken),
             price
         );
         emit OfferCanceled(msg.sender, _bundleID);
@@ -499,9 +499,9 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
         if (offer.payToken == address(0)) {
             require(msg.value == price , "insufficient or incorrect value to buy");
             (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
-            require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+            require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
             (bool payTransferSuccess, ) = msg.sender.call{ value: price - feeAmount }("");
-            require(payTransferSuccess, "PricyMarketplace: Pay transfer failed");
+            require(payTransferSuccess, "VolcanoMarketplace: Pay transfer failed");
         } else {*/
             SafeERC20.safeTransferFrom(IERC20(offer.payToken), _creator, feeReceipient, feeAmount);
             SafeERC20.safeTransferFrom(
@@ -530,7 +530,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
                     bytes("")
                 );
             }
-            IPricyMarketplace(addressRegistry.marketplace()).validateItemSold(
+            IVolcanoMarketplace(addressRegistry.marketplace()).validateItemSold(
                 listing.nfts[i],
                 listing.tokenIds[i],
                 owners[bundleID],
@@ -548,7 +548,7 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
             _creator,
             _bundleID,
             address(offer.payToken),
-            IPricyMarketplace(addressRegistry.marketplace()).getPrice(address(offer.payToken)),
+            IVolcanoMarketplace(addressRegistry.marketplace()).getPrice(address(offer.payToken)),
             offer.price
         );
         emit OfferCanceled(_creator, _bundleID);
@@ -578,11 +578,11 @@ contract PricyBundleMarketplace is Initializable, PausableUpgradeable, OwnableUp
     }
 
     /**
-     @notice Update PricyAddressRegistry contract
+     @notice Update VolcanoAddressRegistry contract
      @dev Only admin
      */
     function updateAddressRegistry(address _registry) external onlyOwner {
-        addressRegistry = IPricyAddressRegistry(_registry);
+        addressRegistry = IVolcanoAddressRegistry(_registry);
     }
 
     /**

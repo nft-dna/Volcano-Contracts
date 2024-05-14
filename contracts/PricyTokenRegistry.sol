@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract PricyTokenRegistry is Ownable {
+contract VolcanoTokenRegistry is Ownable {
   /// @dev Events of the contract
   event TokenAdded(address token);
   event TokenRemoved(address token);

@@ -3,11 +3,11 @@ pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IPricyAddressRegistry {
+interface IVolcanoAddressRegistry {
     function tokenRegistry() external view returns (address);
 }
 
-interface IPricyTokenRegistry {
+interface IVolcanoTokenRegistry {
     function enabled(address) external returns (bool);
 }
 
@@ -17,11 +17,11 @@ interface IOracle {
     function latestAnswer() external view returns (int256);
 }
 
-contract PricyPriceFeed is Ownable {
+contract VolcanoPriceFeed is Ownable {
     /// @notice keeps track of oracles for each tokens
     mapping(address => address) public oracles;
 
-    /// @notice Pricy address registry contract
+    /// @notice Volcano address registry contract
     address public addressRegistry;
 
     /// @notice wrapped FTM contract
@@ -42,8 +42,8 @@ contract PricyPriceFeed is Ownable {
         external
         onlyOwner
     {
-        IPricyTokenRegistry tokenRegistry = IPricyTokenRegistry(
-            IPricyAddressRegistry(addressRegistry).tokenRegistry()
+        IVolcanoTokenRegistry tokenRegistry = IVolcanoTokenRegistry(
+            IVolcanoAddressRegistry(addressRegistry).tokenRegistry()
         );
         require(tokenRegistry.enabled(_token), "invalid token");
         require(oracles[_token] == address(0), "oracle already set");

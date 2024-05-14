@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import "../PricyAuction.sol";
+import "../VolcanoAuction.sol";
 
 contract MockBiddingContract {
-    PricyAuction public auctionContract;
+    VolcanoAuction public auctionContract;
 
-    constructor(PricyAuction _auctionContract) {
+    constructor(VolcanoAuction _auctionContract) {
         auctionContract = _auctionContract;
     }
 

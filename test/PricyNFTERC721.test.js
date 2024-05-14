@@ -9,9 +9,9 @@ const { ZERO_ADDRESS } = constants
 
 const { expect } = require('chai')
 
-const PricyCom = artifacts.require('MockPricyERC721Tradable')
+const VolcanoCom = artifacts.require('MockVolcanoERC721Tradable')
 
-contract('Core ERC721 tests for PricyERC721Tradable', function ([
+contract('Core ERC721 tests for VolcanoERC721Tradable', function ([
   owner,
   minter,
   approved,
@@ -20,7 +20,7 @@ contract('Core ERC721 tests for PricyERC721Tradable', function ([
   other,
   artist,
 ]) {
-  const name = 'PricyCom'
+  const name = 'VolcanoCom'
   const symbol = 'PRY'
 
   const firstTokenId = new BN('1')
@@ -32,7 +32,7 @@ contract('Core ERC721 tests for PricyERC721Tradable', function ([
   const randomTokenURI = 'ipfs'
 
   beforeEach(async function () {
-    this.token = await PricyCom.new(owner, ether(mintFee))
+    this.token = await VolcanoCom.new(owner, ether(mintFee))
   })
 
   describe('metadata', function () {

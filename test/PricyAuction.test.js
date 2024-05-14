@@ -14,14 +14,14 @@ const {
 
 const { ZERO_ADDRESS } = constants;
 
-const PricyAddressRegistry = artifacts.require('PricyAddressRegistry');
-const PricyCom = artifacts.require('MockPricyERC721Tradable');
-const PricyAuction = artifacts.require('MockPricyAuction');
-const PricyAuctionReal = artifacts.require('PricyAuction');
-const PricyTokenRegistry = artifacts.require('PricyTokenRegistry');
-const PricyMarketplace = artifacts.require('PricyMarketplace');
-const PricyBundleMarketplace = artifacts.require('PricyBundleMarketplace');
-const PricyPriceFeed = artifacts.require('PricyPriceFeed');
+const VolcanoAddressRegistry = artifacts.require('VolcanoAddressRegistry');
+const VolcanoCom = artifacts.require('MockVolcanoERC721Tradable');
+const VolcanoAuction = artifacts.require('MockVolcanoAuction');
+const VolcanoAuctionReal = artifacts.require('VolcanoAuction');
+const VolcanoTokenRegistry = artifacts.require('VolcanoTokenRegistry');
+const VolcanoMarketplace = artifacts.require('VolcanoMarketplace');
+const VolcanoBundleMarketplace = artifacts.require('VolcanoBundleMarketplace');
+const VolcanoPriceFeed = artifacts.require('VolcanoPriceFeed');
 const MockBiddingContract = artifacts.require('MockBiddingContract');
 const MockERC20 = artifacts.require('MockERC20');
 
@@ -30,7 +30,7 @@ const platformFee = web3.utils.toWei('75', 'wei'); // marketplace platform fee: 
 const nonExistentTokenId = new BN('999');
 
 
-contract('PricyAuction', (accounts) => {
+contract('VolcanoAuction', (accounts) => {
     const [admin, smartContract, platformFeeAddress, minter, owner, designer, bidder, bidder2, provider] = accounts;
 
     const ZERO = new BN('0');
@@ -42,7 +42,7 @@ contract('PricyAuction', (accounts) => {
     const randomTokenURI = 'rand';
 
     beforeEach(async () => {
-        this.nft = await PricyCom.new(owner, mintFee, {
+        this.nft = await VolcanoCom.new(owner, mintFee, {
             from: minter
         });
         this.mockToken = await MockERC20.new(
@@ -52,47 +52,47 @@ contract('PricyAuction', (accounts) => {
                 from: admin
             }
         );
-        this.pricyTokenRegistry = await PricyTokenRegistry.new({from: admin} );    
-        this.pricyTokenRegistry.add(this.mockToken.address, {from: admin} );
+        this.volcanoTokenRegistry = await VolcanoTokenRegistry.new({from: admin} );    
+        this.volcanoTokenRegistry.add(this.mockToken.address, {from: admin} );
         
-        this.pricyAddressRegistry = await PricyAddressRegistry.new({from: admin} );
+        this.volcanoAddressRegistry = await VolcanoAddressRegistry.new({from: admin} );
                
-        const Marketplace = await ethers.getContractFactory('PricyMarketplace');
-        this.pricyMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeAddress, platformFee], { from: admin,  initializer: 'initialize', kind: 'uups' });
-        await this.pricyMarketplaceEthers.waitForDeployment();
-        this.pricyMarketplaceEthers.address = await this.pricyMarketplaceEthers.getAddress(); 
-        this.pricyMarketplace = await PricyMarketplace.at(this.pricyMarketplaceEthers.address);      
-        await this.pricyMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });        
+        const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
+        this.volcanoMarketplaceEthers = await upgrades.deployProxy(Marketplace, [platformFeeAddress, platformFee], { from: admin,  initializer: 'initialize', kind: 'uups' });
+        await this.volcanoMarketplaceEthers.waitForDeployment();
+        this.volcanoMarketplaceEthers.address = await this.volcanoMarketplaceEthers.getAddress(); 
+        this.volcanoMarketplace = await VolcanoMarketplace.at(this.volcanoMarketplaceEthers.address);      
+        await this.volcanoMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: admin });        
                     
-        const BundleMarketplace = await ethers.getContractFactory('PricyBundleMarketplace');
-        this.pricyBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeAddress, platformFee], {from: admin, initializer: 'initialize', kind: 'uups' });
-        await this.pricyBundleMarketplaceEthers.waitForDeployment();  
-        this.pricyBundleMarketplaceEthers.address = await this.pricyBundleMarketplaceEthers.getAddress();  
-        this.pricyBundleMarketplace = await PricyBundleMarketplace.at(this.pricyBundleMarketplaceEthers.address);
-        await this.pricyBundleMarketplace.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin });                   
+        const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
+        this.volcanoBundleMarketplaceEthers = await upgrades.deployProxy(BundleMarketplace, [platformFeeAddress, platformFee], {from: admin, initializer: 'initialize', kind: 'uups' });
+        await this.volcanoBundleMarketplaceEthers.waitForDeployment();  
+        this.volcanoBundleMarketplaceEthers.address = await this.volcanoBundleMarketplaceEthers.getAddress();  
+        this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.at(this.volcanoBundleMarketplaceEthers.address);
+        await this.volcanoBundleMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: admin });                   
         
-        this.pricyPriceFeed = await PricyPriceFeed.new(this.pricyAddressRegistry.address, this.mockToken.address, { from: admin });        
+        this.volcanoPriceFeed = await VolcanoPriceFeed.new(this.volcanoAddressRegistry.address, this.mockToken.address, { from: admin });        
                     
-        //this.auction = await PricyAuction.new({from: admin} 
+        //this.auction = await VolcanoAuction.new({from: admin} 
         //    //platformFeeAddress,
         //    //{from: admin} 
         //);
         //await this.auction.initialize(platformFeeAddress, {from: admin} );
         //await this.auction.updatePlatformFee(platformFee, {from: admin} );
-        const Auction = await ethers.getContractFactory('MockPricyAuction');
-        this.pricyAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeAddress, platformFee], { from: admin, initializer: 'initialize', kind: 'uups' });
-        await this.pricyAuctionEthers.waitForDeployment();
-        this.pricyAuctionEthers.address = await this.pricyAuctionEthers.getAddress();  
-        this.auction = await PricyAuction.at(this.pricyAuctionEthers.address);               
-        await this.auction.updateAddressRegistry(this.pricyAddressRegistry.address, { from: admin }); 
+        const Auction = await ethers.getContractFactory('MockVolcanoAuction');
+        this.volcanoAuctionEthers = await upgrades.deployProxy(Auction, [platformFeeAddress, platformFee], { from: admin, initializer: 'initialize', kind: 'uups' });
+        await this.volcanoAuctionEthers.waitForDeployment();
+        this.volcanoAuctionEthers.address = await this.volcanoAuctionEthers.getAddress();  
+        this.auction = await VolcanoAuction.at(this.volcanoAuctionEthers.address);               
+        await this.auction.updateAddressRegistry(this.volcanoAddressRegistry.address, { from: admin }); 
                 
                                     
-        await this.pricyAddressRegistry.updateTokenRegistry(this.pricyTokenRegistry.address, {from: admin} );        
-        await this.pricyAddressRegistry.updateMarketplace(this.pricyMarketplace.address, { from: admin });
-        await this.pricyAddressRegistry.updateBundleMarketplace(this.pricyBundleMarketplace.address, { from: admin });
-        await this.pricyAddressRegistry.updatePriceFeed(this.pricyPriceFeed.address, { from: admin });                
+        await this.volcanoAddressRegistry.updateTokenRegistry(this.volcanoTokenRegistry.address, {from: admin} );        
+        await this.volcanoAddressRegistry.updateMarketplace(this.volcanoMarketplace.address, { from: admin });
+        await this.volcanoAddressRegistry.updateBundleMarketplace(this.volcanoBundleMarketplace.address, { from: admin });
+        await this.volcanoAddressRegistry.updatePriceFeed(this.volcanoPriceFeed.address, { from: admin });                
    
-        await this.pricyAddressRegistry.updateAuction(this.auction.address, { from: admin });
+        await this.volcanoAddressRegistry.updateAuction(this.auction.address, { from: admin });
 
         await this.nft.setApprovalForAll(this.auction.address, true, {
             from: minter
@@ -108,14 +108,14 @@ contract('PricyAuction', (accounts) => {
 
         describe('Contract deployment', () => {
             it('Reverts when platform fee recipient is zero', async () => {
-                //let pa = await PricyAuctionReal.new({
+                //let pa = await VolcanoAuctionReal.new({
                 //    from: admin
                 //});
-                const Auction = await ethers.getContractFactory('MockPricyAuction');
+                const Auction = await ethers.getContractFactory('MockVolcanoAuction');
                 await expectRevert(
                     //pa.initialize(constants.ZERO_ADDRESS, platformFee),
                     upgrades.deployProxy(Auction, [constants.ZERO_ADDRESS, platformFee], {from: admin, initializer: 'initialize', kind: 'uups' }),
-                    "PricyAuction: Invalid Platform Fee Recipient"
+                    "VolcanoAuction: Invalid Platform Fee Recipient"
                 );
             });
         });

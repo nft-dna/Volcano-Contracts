@@ -12,7 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
-interface IPricyAddressRegistry {
+interface IVolcanoAddressRegistry {
     //function artion() external view returns (address);
 
     function marketplace() external view returns (address);
@@ -22,7 +22,7 @@ interface IPricyAddressRegistry {
     function tokenRegistry() external view returns (address);
 }
 
-interface IPricyMarketplace {
+interface IVolcanoMarketplace {
     function minters(address, uint256) external view returns (address);
 
     function royalties(address, uint256) external view returns (uint16);
@@ -39,7 +39,7 @@ interface IPricyMarketplace {
     function getPrice(address) external view returns (int256);
 }
 
-interface IPricyBundleMarketplace {
+interface IVolcanoBundleMarketplace {
     function validateItemSold(
         address,
         uint256,
@@ -47,19 +47,19 @@ interface IPricyBundleMarketplace {
     ) external;
 }
 
-interface IPricyTokenRegistry {
+interface IVolcanoTokenRegistry {
     function enabled(address) external returns (bool);
 }
 
 /**
  * @notice Secondary sale auction contract for NFTs
  */
-contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract VolcanoAuction is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
 
     using AddressUpgradeable for address payable;
 
     /// @notice Event emitted only on construction. To be used by indexers
-    event PricyAuctionContractDeployed();
+    event VolcanoAuctionContractDeployed();
 
     event PauseToggled(bool isPaused);
 
@@ -166,7 +166,7 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
     address payable public platformFeeRecipient;
 
     /// @notice Address registry
-    IPricyAddressRegistry public addressRegistry;
+    IVolcanoAddressRegistry public addressRegistry;
 
     /*
     /// @notice for switching off auction creations, bids and withdrawals
@@ -203,12 +203,12 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
     function initialize(address payable _platformFeeRecipient, uint256 _platformFee) initializer public {
         require(
             _platformFeeRecipient != address(0),
-            "PricyAuction: Invalid Platform Fee Recipient"
+            "VolcanoAuction: Invalid Platform Fee Recipient"
         );
 
         platformFeeRecipient = _platformFeeRecipient;
 	platformFee = _platformFee;
-        emit PricyAuctionContractDeployed();
+        emit VolcanoAuctionContractDeployed();
 	
 	minBidIncrement = 1;
 	bidWithdrawalLockTime = 20 minutes;
@@ -259,7 +259,7 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
         require(
             _payToken == address(0) ||
                 (addressRegistry.tokenRegistry() != address(0) &&
-                    IPricyTokenRegistry(addressRegistry.tokenRegistry())
+                    IVolcanoTokenRegistry(addressRegistry.tokenRegistry())
                         .enabled(_payToken)),
             "invalid pay token"
         );
@@ -512,7 +512,7 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
             payAmount = winningBid;
         }
 
-        IPricyMarketplace marketplace = IPricyMarketplace(
+        IVolcanoMarketplace marketplace = IVolcanoMarketplace(
             addressRegistry.marketplace()
         );
         address minter = marketplace.minters(_nftAddress, _tokenId);
@@ -582,7 +582,7 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
             _tokenId
         );
 
-        IPricyBundleMarketplace(addressRegistry.bundleMarketplace())
+        IVolcanoBundleMarketplace(addressRegistry.bundleMarketplace())
             .validateItemSold(_nftAddress, _tokenId, uint256(1));
 
         emit AuctionResulted(
@@ -591,7 +591,7 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
             _tokenId,
             winner,
             auction.payToken,
-            IPricyMarketplace(addressRegistry.marketplace()).getPrice(
+            IVolcanoMarketplace(addressRegistry.marketplace()).getPrice(
                 auction.payToken
             ),
             winningBid
@@ -790,11 +790,11 @@ contract PricyAuction is Initializable, PausableUpgradeable, OwnableUpgradeable,
     }
 
     /**
-     @notice Update PricyAddressRegistry contract
+     @notice Update VolcanoAddressRegistry contract
      @dev Only admin
      */
     function updateAddressRegistry(address _registry) external onlyOwner {
-        addressRegistry = IPricyAddressRegistry(_registry);
+        addressRegistry = IVolcanoAddressRegistry(_registry);
     }
 
     ///////////////

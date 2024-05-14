@@ -14,7 +14,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
-interface IPricyAddressRegistry {
+interface IVolcanoAddressRegistry {
     //function artion() external view returns (address);
 
     function bundleMarketplace() external view returns (address);
@@ -34,7 +34,7 @@ interface IPricyAddressRegistry {
     function priceFeed() external view returns (address);
 }
 
-interface IPricyAuction {
+interface IVolcanoAuction {
     function auctions(address, uint256)
         external
         view
@@ -48,7 +48,7 @@ interface IPricyAuction {
         );
 }
 
-interface IPricyBundleMarketplace {
+interface IVolcanoBundleMarketplace {
     function validateItemSold(
         address,
         uint256,
@@ -56,21 +56,21 @@ interface IPricyBundleMarketplace {
     ) external;
 }
 
-interface IPricyNFTFactory {
+interface IVolcanoNFTFactory {
     function exists(address) external view returns (bool);
 }
 
-interface IPricyTokenRegistry {
+interface IVolcanoTokenRegistry {
     function enabled(address) external view returns (bool);
 }
 
-interface IPricyPriceFeed {
+interface IVolcanoPriceFeed {
     function wFTM() external view returns (address);
 
     function getPrice(address) external view returns (int256, uint8);
 }
 
-contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
 
     using AddressUpgradeable for address payable;
     using SafeERC20 for IERC20;
@@ -173,7 +173,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
     mapping(address => CollectionRoyalty) public collectionRoyalties;
 
     /// @notice Address registry
-    IPricyAddressRegistry public addressRegistry;
+    IVolcanoAddressRegistry public addressRegistry;
 
     modifier onlyMarketplace() {
         require(
@@ -250,7 +250,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
     function initialize(address payable _feeRecipient, uint256 _platformFee) initializer public {
         require(
             _feeRecipient != address(0),
-            "PricyAuction: Invalid Platform Fee Recipient"
+            "VolcanoAuction: Invalid Platform Fee Recipient"
         );
 
         platformFee = _platformFee;
@@ -406,7 +406,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
 	if (_payToken == address(0)) {
 		require(msg.value == price, "insufficient or incorrect value to buy");		
 		(bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
-		require(feeTransferSuccess, "PricyMarketplace: Fee transfer failed");
+		require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
 	} else {
 		IERC20(_payToken).safeTransferFrom(
 				msg.sender,
@@ -422,7 +422,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
 
 			if (_payToken == address(0)) {
 				(bool royaltyFeeTransferSuccess, ) = minter.call{value: royaltyFee}("");
-				require(royaltyFeeTransferSuccess, "PricyMarketplace: RoyaltyFee transfer failed");
+				require(royaltyFeeTransferSuccess, "VolcanoMarketplace: RoyaltyFee transfer failed");
 			} else {
 				IERC20(_payToken).safeTransferFrom(
 					msg.sender,
@@ -439,7 +439,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
                 uint256 royaltyFee = ((price - feeAmount) * royalty) / 10000;
 				if (_payToken == address(0)) {
 					(bool royaltyFeeTransferSuccess, ) = minter.call{value: royaltyFee}("");
-					require(royaltyFeeTransferSuccess, "PricyMarketplace: RoyaltyFee transfer failed");
+					require(royaltyFeeTransferSuccess, "VolcanoMarketplace: RoyaltyFee transfer failed");
 				} else {
 					IERC20(_payToken).safeTransferFrom(
 						msg.sender,
@@ -454,7 +454,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
 
 		if (_payToken == address(0)) {
             (bool ownerTransferSuccess, ) = _owner.call{ value: price - feeAmount}("");
-            require(ownerTransferSuccess, "PricyMarketplace: Owner transfer failed");		
+            require(ownerTransferSuccess, "VolcanoMarketplace: Owner transfer failed");		
 		} else {
 			IERC20(_payToken).safeTransferFrom(
 				msg.sender,
@@ -479,7 +479,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
                 bytes("")
             );
         }
-        IPricyBundleMarketplace(addressRegistry.bundleMarketplace())
+        IVolcanoBundleMarketplace(addressRegistry.bundleMarketplace())
             .validateItemSold(_nftAddress, _tokenId, listedItem.quantity);
 
         emit ItemSold(
@@ -516,7 +516,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
             "invalid nft address"
         );
 
-        IPricyAuction auction = IPricyAuction(addressRegistry.auction());
+        IVolcanoAuction auction = IVolcanoAuction(addressRegistry.auction());
 
         (, , , uint256 startTime, , bool resulted) = auction.auctions(
             _nftAddress,
@@ -619,7 +619,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
                 bytes("")
             );
         }
-        IPricyBundleMarketplace(addressRegistry.bundleMarketplace())
+        IVolcanoBundleMarketplace(addressRegistry.bundleMarketplace())
             .validateItemSold(_nftAddress, _tokenId, offer.quantity);
 
         emit ItemSold(
@@ -649,7 +649,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
         uint16 _royalty
     ) external {
         require(_royalty <= 10000, "invalid royalty");
-        require(_isPricyNFT(_nftAddress), "invalid nft address");
+        require(_isVolcanoNFT(_nftAddress), "invalid nft address");
 
         _validOwner(_nftAddress, _tokenId, msg.sender, 1);
 
@@ -676,7 +676,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
             _royalty == 0 || _feeRecipient != address(0),
             "invalid fee recipient address"
         );
-        require(!_isPricyNFT(_nftAddress), "invalid nft address");
+        require(!_isVolcanoNFT(_nftAddress), "invalid nft address");
 
         if (collectionRoyalties[_nftAddress].creator == address(0)) {
             collectionRoyalties[_nftAddress] = CollectionRoyalty(
@@ -695,13 +695,13 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
         }
     }
 
-    function _isPricyNFT(address _nftAddress) internal view returns (bool) {
+    function _isVolcanoNFT(address _nftAddress) internal view returns (bool) {
         return
             //addressRegistry.artion() == _nftAddress ||
-            IPricyNFTFactory(addressRegistry.erc721factory()).exists(_nftAddress) ||
-            //IPricyNFTFactory(addressRegistry.privateErc721Factory()).exists(_nftAddress) ||
-            IPricyNFTFactory(addressRegistry.erc1155Factory()).exists(_nftAddress) /*||
-            IPricyNFTFactory(addressRegistry.privateErc1155Factory()).exists(_nftAddress)*/;
+            IVolcanoNFTFactory(addressRegistry.erc721factory()).exists(_nftAddress) ||
+            //IVolcanoNFTFactory(addressRegistry.privateErc721Factory()).exists(_nftAddress) ||
+            IVolcanoNFTFactory(addressRegistry.erc1155Factory()).exists(_nftAddress) /*||
+            IVolcanoNFTFactory(addressRegistry.privateErc1155Factory()).exists(_nftAddress)*/;
     }
 
     /**
@@ -711,7 +711,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
     function getPrice(address _payToken) public view returns (int256) {
         int256 unitPrice;
         uint8 decimals;
-        IPricyPriceFeed priceFeed = IPricyPriceFeed(
+        IVolcanoPriceFeed priceFeed = IVolcanoPriceFeed(
             addressRegistry.priceFeed()
         );
 
@@ -753,11 +753,11 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
     }
 
     /**
-     @notice Update PricyAddressRegistry contract
+     @notice Update VolcanoAddressRegistry contract
      @dev Only admin
      */
     function updateAddressRegistry(address _registry) external onlyOwner {
-        addressRegistry = IPricyAddressRegistry(_registry);
+        addressRegistry = IVolcanoAddressRegistry(_registry);
     }
 
     /**
@@ -790,7 +790,7 @@ contract PricyMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownable
         require(
             _payToken == address(0) ||
                 (addressRegistry.tokenRegistry() != address(0) &&
-                    IPricyTokenRegistry(addressRegistry.tokenRegistry())
+                    IVolcanoTokenRegistry(addressRegistry.tokenRegistry())
                         .enabled(_payToken)),
             "invalid pay token"
         );
