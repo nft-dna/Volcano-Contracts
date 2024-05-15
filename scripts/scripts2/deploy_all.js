@@ -106,13 +106,13 @@ async function main(network) {
     const addressRegistry = await AddressRegistry.deploy();
     await addressRegistry.waitForDeployment();  
     console.log('VolcanoAddressRegistry deployed to', await addressRegistry.getAddress());
-    const PRICYCOM_ADDRESS_REGISTRY = await addressRegistry.getAddress();
+    const ADDRESS_REGISTRY = await addressRegistry.getAddress();
     ////////
 
     ////////
     const PriceFeed = await ethers.getContractFactory('VolcanoPriceFeed');
     const WRAPPED_FTM = network.name === 'mainnet' ? WRAPPED_FTM_MAINNET : WRAPPED_FTM_TESTNET;
-    const priceFeed = await PriceFeed.deploy( PRICYCOM_ADDRESS_REGISTRY, WRAPPED_FTM);
+    const priceFeed = await PriceFeed.deploy( ADDRESS_REGISTRY, WRAPPED_FTM);
     await priceFeed.waitForDeployment();  
     console.log('VolcanoPriceFeed deployed to', await priceFeed.getAddress());
     ////////
