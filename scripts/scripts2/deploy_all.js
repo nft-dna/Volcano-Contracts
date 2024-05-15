@@ -75,7 +75,7 @@ async function main(network) {
 
     ///////
     const volcanoERC721Tradable = await ethers.getContractFactory('VolcanoERC721Tradable');   
-    const erc721Tradable = await volcanoERC721Tradable.deploy('VolcanoERC721', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
+    const erc721Tradable = await volcanoERC721Tradable.deploy('VolcanoERC721', 'MVLC', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
     await erc721Tradable.waitForDeployment();    
     console.log('VolcanoERC721Tradable deployed to:', await erc721Tradable.getAddress());
     ////////
@@ -89,7 +89,7 @@ async function main(network) {
     
     ////////
     const volcanoERC1155Tradable = await ethers.getContractFactory('VolcanoERC1155Tradable');
-    const erc1155Tradable = await volcanoERC1155Tradable.deploy('VolcanoERC1155', 'PRCY', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
+    const erc1155Tradable = await volcanoERC1155Tradable.deploy('VolcanoERC1155', 'MVLC', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, '50000000000000000000', '50000000000000000000', TREASURY_ADDRESS, false);
     await erc1155Tradable.waitForDeployment();
     console.log('VolcanoERC1155Tradable deployed to:', await erc1155Tradable.getAddress());
     ///////

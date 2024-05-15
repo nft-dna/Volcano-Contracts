@@ -8,7 +8,8 @@ require('@nomiclabs/hardhat-solhint');
 require('hardhat-contract-sizer');
 require('@openzeppelin/hardhat-upgrades');
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY;
+const TESTNET_PRIVATE_KEY = process.env.TESTNET_PRIVATE_KEY;
 
 module.exports = {
   solidity: {
@@ -29,12 +30,12 @@ module.exports = {
     mainnet: {
       url: `https://eth.meowrpc.com`,
       chainId: 1,
-      accounts: [`0x${PRIVATE_KEY}`]
+      accounts: [`0x${MAINNET_PRIVATE_KEY}`]
     },
     testnet: {
-      url: `https://ethereum-goerli.publicnode.com`,
-      chainId: 5,
-      accounts: [`0x${PRIVATE_KEY}`]
+      url: `https://turbo.magma-rpc.com/`,
+      chainId: 6969696969,
+      accounts: [`0x${TESTNET_PRIVATE_KEY}`]
     },
     coverage: {
       url: 'http://localhost:8555',
