@@ -9,7 +9,11 @@ require('hardhat-contract-sizer');
 require('@openzeppelin/hardhat-upgrades');
 
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY;
+const MAINNET_URL = process.env.MAINNET_URL;
+const MAINNET_CHAINID = process.env.MAINNET_CHAINID *1;
 const TESTNET_PRIVATE_KEY = process.env.TESTNET_PRIVATE_KEY;
+const TESTNET_URL = process.env.TESTNET_URL;
+const TESTNET_CHAINID = process.env.TESTNET_CHAINID *1;
 
 module.exports = {
   solidity: {
@@ -28,13 +32,13 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: `https://eth.meowrpc.com`,
-      chainId: 1,
+      url: MAINNET_URL,
+      chainId: MAINNET_CHAINID,
       accounts: [`0x${MAINNET_PRIVATE_KEY}`]
     },
     testnet: {
-      url: `https://turbo.magma-rpc.com/`,
-      chainId: 6969696969,
+      url: TESTNET_URL,
+      chainId: TESTNET_CHAINID,
       accounts: [`0x${TESTNET_PRIVATE_KEY}`]
     },
     coverage: {

@@ -12,7 +12,7 @@ async function main(network) {
     const balance  = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, balance);
   
-    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_FTM_MAINNET, WRAPPED_FTM_TESTNET } = require('../constants');
+    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET } = require('../constants');
   
     /*
     ///////////
@@ -42,12 +42,15 @@ async function main(network) {
 
     /////////
     const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
+	console.log("1");
     const marketplaceProxy = await upgrades.deployProxy(Marketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	console.log("2");
     await marketplaceProxy.waitForDeployment();
+	console.log("3");
     console.log('Marketplace Proxy deployed at ', await marketplaceProxy.getAddress());
     const MARKETPLACE_PROXY_ADDRESS = await marketplaceProxy.getAddress();
     /////////
-
+	console.log("4");
     /////////
     const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
     const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
@@ -111,15 +114,15 @@ async function main(network) {
 
     ////////
     const PriceFeed = await ethers.getContractFactory('VolcanoPriceFeed');
-    const WRAPPED_FTM = network.name === 'mainnet' ? WRAPPED_FTM_MAINNET : WRAPPED_FTM_TESTNET;
-    const priceFeed = await PriceFeed.deploy( ADDRESS_REGISTRY, WRAPPED_FTM);
+    const WRAPPED_WETH = network.name === 'mainnet' ? WRAPPED_WETH_MAINNET : WRAPPED_WETH_TESTNET;
+    const priceFeed = await PriceFeed.deploy( ADDRESS_REGISTRY, WRAPPED_WETH);
     await priceFeed.waitForDeployment();  
     console.log('VolcanoPriceFeed deployed to', await priceFeed.getAddress());
     ////////
     
-    await marketplaceProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);   
-    await bundleMarketplaceProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY); 
-    await auctionProxy.updateAddressRegistry(PRICYCOM_ADDRESS_REGISTRY);    
+    await marketplaceProxy.updateAddressRegistry(ADDRESS_REGISTRY);   
+    await bundleMarketplaceProxy.updateAddressRegistry(ADDRESS_REGISTRY); 
+    await auctionProxy.updateAddressRegistry(ADDRESS_REGISTRY);    
     
     //await addressRegistry.updateVolcanoCom(artion.address);
     await addressRegistry.updateAuction(AUCTION_PROXY_ADDRESS);
@@ -130,7 +133,7 @@ async function main(network) {
     await addressRegistry.updatePriceFeed(await priceFeed.getAddress());
     await addressRegistry.updateErc1155Factory(await erc1155Factory.getAddress());   
 
-    await tokenRegistry.add(WRAPPED_FTM);
+    await tokenRegistry.add(WRAPPED_WETH);
     
     const finalbalance = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, finalbalance);
