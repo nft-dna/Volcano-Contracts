@@ -21,8 +21,9 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 5000,
       },
+	  evmVersion : 'london'
     },
   },
   gasReporter: {
@@ -39,7 +40,8 @@ module.exports = {
     testnet: {
       url: TESTNET_URL,
       chainId: TESTNET_CHAINID,
-      accounts: [`0x${TESTNET_PRIVATE_KEY}`]
+      accounts: [`0x${TESTNET_PRIVATE_KEY}`],
+	  gasPrice: "auto"
     },
     coverage: {
       url: 'http://localhost:8555',
@@ -50,6 +52,6 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: '46DD6NK19R2AZQQIJIY1FXR85HKM2XSNBE'
+    apiKey: ''
   }
 };

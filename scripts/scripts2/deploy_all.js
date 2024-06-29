@@ -14,43 +14,15 @@ async function main(network) {
   
     const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET } = require('../constants');
   
-    /*
-    ///////////
-    const Artion = await ethers.getContractFactory('VolcanoCom');
-    //console.log( ' getContractFactory(VolcanoCom)');
-    const artion = await Artion.deploy(TREASURY_ADDRESS, '2000000000000000000');
-    //console.log( ' await Artion.deploy');
-  
-    await artion.deployed();  
-    console.log('VolcanoCom deployed at', artion.address);
-    //////////
-    */
-
-    /*
-    /////////
-    const ProxyAdmin = await ethers.getContractFactory('ProxyAdmin');
-    const proxyAdmin = await ProxyAdmin.deploy();
-    await proxyAdmin.deployed();
-
-    const PROXY_ADDRESS = proxyAdmin.address;
-
-    console.log('ProxyAdmin deployed to:', proxyAdmin.address);
-
-    const AdminUpgradeabilityProxyFactory = await ethers.getContractFactory('AdminUpgradeabilityProxy');
-    /////////
-    */
 
     /////////
     const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
-	console.log("1");
     const marketplaceProxy = await upgrades.deployProxy(Marketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
-	console.log("2");
     await marketplaceProxy.waitForDeployment();
-	console.log("3");
     console.log('Marketplace Proxy deployed at ', await marketplaceProxy.getAddress());
     const MARKETPLACE_PROXY_ADDRESS = await marketplaceProxy.getAddress();
     /////////
-	console.log("4");
+
     /////////
     const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
     const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
