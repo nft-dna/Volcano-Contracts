@@ -1,0 +1,1388 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x481a16cE5C00F23BEABcc8133D3Af66c509E882A",
+      "txHash": "0xa16142294d77208411038a61788feba178d8070215b1bcb22bc3a20efb4ed3f2",
+      "kind": "uups"
+    },
+    {
+      "address": "0xbE7380A00ee08eF2df78548236b01eeCEECD60A9",
+      "txHash": "0x2a274494aeb5a0afc07102355ed0e4f12499eaa456f4ca33c064c523027a2b3d",
+      "kind": "uups"
+    },
+    {
+      "address": "0xFbe6b753D30E01c2Da7BCB7bF2A9d5B3419834D3",
+      "txHash": "0x26ea6cf7f304b3a6b10f7acfedfaccfc345265fa1403abf8852fd9f5ae51db0d",
+      "kind": "uups"
+    },
+    {
+      "address": "0x84f3D9EaE27B121EFD0072b21b4E324B3996B867",
+      "txHash": "0x9ed8699e3de88322d7228d265fa097af7c234db740d888da07c62fabda6d377b",
+      "kind": "uups"
+    },
+    {
+      "address": "0x8f4eDc633123Fe9EbdE2b66b5b42a722794bF9F2",
+      "txHash": "0x105d08245ac120e5a57ec361a921f9546a53e1b1e972572ca70cf82430aa2a3f",
+      "kind": "uups"
+    },
+    {
+      "address": "0x7F8a25674Af96B36ed2129AF61BdAe685b2007e5",
+      "txHash": "0xaf9d5c16bb420b410694b1af0c07f35137b3275cce82f411b61151d5b8777108",
+      "kind": "uups"
+    },
+    {
+      "address": "0x2C759982d596323b6520B862B60a257AcDA58983",
+      "txHash": "0xd7cc70f78bb59e61f6f1ac54b2ac572964a50e96973f7a0dafc1496cb7f5d16a",
+      "kind": "uups"
+    },
+    {
+      "address": "0x6aa56E143f718a72930756947E20c7bDA62191f3",
+      "txHash": "0x23b8e6592496b5880a1aa7a8388d5e95e64f5b3a4019268eaec958f46366b216",
+      "kind": "uups"
+    },
+    {
+      "address": "0x084dD992bbD5B4fFee212F18C7398903411bfb3C",
+      "txHash": "0xf02b06a9f0b41615ae64423564d2596232923ba16f119dc4178bda4eeb320429",
+      "kind": "uups"
+    },
+    {
+      "address": "0x5faE05835bbdb62Fd408EedBbfE76EF2b72435d3",
+      "txHash": "0x2f49ef96286b22c6c7ccf34b2b161a0f09df4aeafbd4a9bbd9003171e265dea3",
+      "kind": "uups"
+    },
+    {
+      "address": "0x99621a66edf5B9e16B510Ff8A2A56094D698c275",
+      "txHash": "0xb90265acd9a323f4dabc640e9b96c206e71f7acc1d66ab724471f653cc0d3f55",
+      "kind": "uups"
+    },
+    {
+      "address": "0x3097489d44C5A6A1B087f946Cf81B42F641774eD",
+      "txHash": "0x7f91c78090d2b8bf14f58060ce78dcf6b2c76090aa2af936ed9c09adc49283ae",
+      "kind": "uups"
+    },
+    {
+      "address": "0x57EBE4C797572AF95C70B04a941AE9E71c467bb6",
+      "txHash": "0x967c6a2b9e47d7ef0a3bb119c23ae84a5cfb61568fde7b20538e623b6cc3a3e7",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "0e38b44e564008e40c1299939d4019302865898b796d6fbd0ff99639ee5fc0c9": {
+      "address": "0x4efBbD10a19117CFB0690184C2CDabe45475f691",
+      "txHash": "0x026dccd8feab214df3d62a41d8ee666d0496cbe2ebbb16ffcef54ac7817bb8d5",
+      "layout": {
+        "solcVersion": "0.8.21",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "minters",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_address))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:153"
+          },
+          {
+            "label": "royalties",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint16))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:156"
+          },
+          {
+            "label": "listings",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14178_storage)))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:159"
+          },
+          {
+            "label": "offers",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14189_storage)))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:163"
+          },
+          {
+            "label": "platformFee",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_uint256",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:167"
+          },
+          {
+            "label": "feeReceipient",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address_payable",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:170"
+          },
+          {
+            "label": "collectionRoyalties",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_mapping(t_address,t_struct(CollectionRoyalty)14196_storage)",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:173"
+          },
+          {
+            "label": "addressRegistry",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_contract(IVolcanoAddressRegistry)14003",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:176"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)4554": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVolcanoAddressRegistry)14003": {
+            "label": "contract IVolcanoAddressRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_address))": {
+            "label": "mapping(address => mapping(uint256 => address))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14178_storage)))": {
+            "label": "mapping(address => mapping(uint256 => mapping(address => struct VolcanoMarketplace.Listing)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14189_storage)))": {
+            "label": "mapping(address => mapping(uint256 => mapping(address => struct VolcanoMarketplace.Offer)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint16))": {
+            "label": "mapping(address => mapping(uint256 => uint16))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(CollectionRoyalty)14196_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.CollectionRoyalty)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Listing)14178_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.Listing)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Offer)14189_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.Offer)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14178_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct VolcanoMarketplace.Listing))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14189_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct VolcanoMarketplace.Offer))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint16)": {
+            "label": "mapping(uint256 => uint16)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CollectionRoyalty)14196_storage": {
+            "label": "struct VolcanoMarketplace.CollectionRoyalty",
+            "members": [
+              {
+                "label": "royalty",
+                "type": "t_uint16",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 2,
+                "slot": "0"
+              },
+              {
+                "label": "feeRecipient",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Listing)14178_storage": {
+            "label": "struct VolcanoMarketplace.Listing",
+            "members": [
+              {
+                "label": "quantity",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "pricePerItem",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "startingTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(Offer)14189_storage": {
+            "label": "struct VolcanoMarketplace.Offer",
+            "members": [
+              {
+                "label": "payToken",
+                "type": "t_contract(IERC20)4554",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "quantity",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "pricePerItem",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "982116d0b3bd6f38b85365fb413bad4c9f10f8d4bce1712b7288b9457b5586f9": {
+      "address": "0xFf610A41C5Cda0c7b2824dD816d93B2c4A1a174B",
+      "txHash": "0x5ce7839e70232f3d56f99096f9ba0e71bd809cb38cb8e56926a60e85dac66588",
+      "layout": {
+        "solcVersion": "0.8.21",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "minters",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_address))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:153"
+          },
+          {
+            "label": "royalties",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint16))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:156"
+          },
+          {
+            "label": "listings",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14664_storage)))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:159"
+          },
+          {
+            "label": "offers",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14675_storage)))",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:163"
+          },
+          {
+            "label": "platformFee",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_uint256",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:167"
+          },
+          {
+            "label": "feeReceipient",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address_payable",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:170"
+          },
+          {
+            "label": "collectionRoyalties",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_mapping(t_address,t_struct(CollectionRoyalty)14682_storage)",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:173"
+          },
+          {
+            "label": "addressRegistry",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_contract(IVolcanoAddressRegistry)14489",
+            "contract": "VolcanoMarketplace",
+            "src": "contracts\\VolcanoMarketplace.sol:176"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)4554": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVolcanoAddressRegistry)14489": {
+            "label": "contract IVolcanoAddressRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_address))": {
+            "label": "mapping(address => mapping(uint256 => address))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14664_storage)))": {
+            "label": "mapping(address => mapping(uint256 => mapping(address => struct VolcanoMarketplace.Listing)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14675_storage)))": {
+            "label": "mapping(address => mapping(uint256 => mapping(address => struct VolcanoMarketplace.Offer)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint16))": {
+            "label": "mapping(address => mapping(uint256 => uint16))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(CollectionRoyalty)14682_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.CollectionRoyalty)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Listing)14664_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.Listing)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Offer)14675_storage)": {
+            "label": "mapping(address => struct VolcanoMarketplace.Offer)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(Listing)14664_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct VolcanoMarketplace.Listing))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(Offer)14675_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct VolcanoMarketplace.Offer))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint16)": {
+            "label": "mapping(uint256 => uint16)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CollectionRoyalty)14682_storage": {
+            "label": "struct VolcanoMarketplace.CollectionRoyalty",
+            "members": [
+              {
+                "label": "royalty",
+                "type": "t_uint16",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 2,
+                "slot": "0"
+              },
+              {
+                "label": "feeRecipient",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Listing)14664_storage": {
+            "label": "struct VolcanoMarketplace.Listing",
+            "members": [
+              {
+                "label": "quantity",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "pricePerItem",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "startingTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(Offer)14675_storage": {
+            "label": "struct VolcanoMarketplace.Offer",
+            "members": [
+              {
+                "label": "payToken",
+                "type": "t_contract(IERC20)4554",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "quantity",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "pricePerItem",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "b3698a0dffe04243ec361e18691e0ea1986e7472a95fd12558e8d7ce5883a897": {
+      "address": "0xA676caEBE626F6A4Aa866a568325D7CD6F939406",
+      "txHash": "0x61814818f8b19e5014167dbf68990f30150180dce05e51d70ec2882f23303ca9",
+      "layout": {
+        "solcVersion": "0.8.21",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "listings",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Listing)11107_storage))",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:105"
+          },
+          {
+            "label": "owners",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:108"
+          },
+          {
+            "label": "bundleIdsPerItem",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Bytes32Set)1713_storage))",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:110"
+          },
+          {
+            "label": "nftIndexes",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_bytes32,t_mapping(t_address,t_mapping(t_uint256,t_uint256)))",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:112"
+          },
+          {
+            "label": "bundleIds",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_mapping(t_bytes32,t_string_storage)",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:114"
+          },
+          {
+            "label": "offers",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_mapping(t_bytes32,t_mapping(t_address,t_struct(Offer)11116_storage))",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:117"
+          },
+          {
+            "label": "platformFee",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_uint256",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:120"
+          },
+          {
+            "label": "feeReceipient",
+            "offset": 0,
+            "slot": "308",
+            "type": "t_address_payable",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:123"
+          },
+          {
+            "label": "addressRegistry",
+            "offset": 0,
+            "slot": "309",
+            "type": "t_contract(IVolcanoAddressRegistry)10964",
+            "contract": "VolcanoBundleMarketplace",
+            "src": "contracts\\VolcanoBundleMarketplace.sol:126"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)4554": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVolcanoAddressRegistry)10964": {
+            "label": "contract IVolcanoAddressRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Listing)11107_storage))": {
+            "label": "mapping(address => mapping(bytes32 => struct VolcanoBundleMarketplace.Listing))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(Bytes32Set)1713_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct EnumerableSetUpgradeable.Bytes32Set))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(address => mapping(uint256 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(Offer)11116_storage)": {
+            "label": "mapping(address => struct VolcanoBundleMarketplace.Offer)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_address)": {
+            "label": "mapping(bytes32 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_mapping(t_address,t_mapping(t_uint256,t_uint256)))": {
+            "label": "mapping(bytes32 => mapping(address => mapping(uint256 => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_mapping(t_address,t_struct(Offer)11116_storage))": {
+            "label": "mapping(bytes32 => mapping(address => struct VolcanoBundleMarketplace.Offer))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_string_storage)": {
+            "label": "mapping(bytes32 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Listing)11107_storage)": {
+            "label": "mapping(bytes32 => struct VolcanoBundleMarketplace.Listing)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Bytes32Set)1713_storage)": {
+            "label": "mapping(uint256 => struct EnumerableSetUpgradeable.Bytes32Set)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Bytes32Set)1713_storage": {
+            "label": "struct EnumerableSetUpgradeable.Bytes32Set",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)1519_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Listing)11107_storage": {
+            "label": "struct VolcanoBundleMarketplace.Listing",
+            "members": [
+              {
+                "label": "nfts",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "tokenIds",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "quantities",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "payToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "startingTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(Offer)11116_storage": {
+            "label": "struct VolcanoBundleMarketplace.Offer",
+            "members": [
+              {
+                "label": "payToken",
+                "type": "t_contract(IERC20)4554",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "price",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "deadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Set)1519_storage": {
+            "label": "struct EnumerableSetUpgradeable.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "957ff2971dcb8343800e835255294a950f5cef144f384e6e9e1564d078328782": {
+      "address": "0x25612070125e49A954881989a3e76081e4b94b3F",
+      "txHash": "0x5775547b9b61f5ba5876b25809f09e690a043091ba20eab17266e4ddb3c7418b",
+      "layout": {
+        "solcVersion": "0.8.21",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "auctions",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Auction)9176_storage))",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:151"
+          },
+          {
+            "label": "highestBids",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(HighestBid)9184_storage))",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:154"
+          },
+          {
+            "label": "minBidIncrement",
+            "offset": 0,
+            "slot": "303",
+            "type": "t_uint256",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:157"
+          },
+          {
+            "label": "bidWithdrawalLockTime",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_uint256",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:160"
+          },
+          {
+            "label": "platformFee",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_uint256",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:163"
+          },
+          {
+            "label": "platformFeeRecipient",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address_payable",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:166"
+          },
+          {
+            "label": "addressRegistry",
+            "offset": 0,
+            "slot": "307",
+            "type": "t_contract(IVolcanoAddressRegistry)8982",
+            "contract": "VolcanoAuction",
+            "src": "contracts\\VolcanoAuction.sol:169"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVolcanoAddressRegistry)8982": {
+            "label": "contract IVolcanoAddressRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(Auction)9176_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct VolcanoAuction.Auction))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(HighestBid)9184_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct VolcanoAuction.HighestBid))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Auction)9176_storage)": {
+            "label": "mapping(uint256 => struct VolcanoAuction.Auction)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(HighestBid)9184_storage)": {
+            "label": "mapping(uint256 => struct VolcanoAuction.HighestBid)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Auction)9176_storage": {
+            "label": "struct VolcanoAuction.Auction",
+            "members": [
+              {
+                "label": "owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "payToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "minBid",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "reservePrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "startTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "endTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "resulted",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(HighestBid)9184_storage": {
+            "label": "struct VolcanoAuction.HighestBid",
+            "members": [
+              {
+                "label": "bidder",
+                "type": "t_address_payable",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "bid",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBidTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}
