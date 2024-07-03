@@ -1,17 +1,21 @@
 
 // Magma
-Deployer's balance:  12140404112000000000n
-Marketplace Proxy deployed at  0x57588F18481E8a30e8a2D8F6B9AeEf2673F9fAB8
-Bundle Marketplace Proxy deployed at  0x80B0F0a9c0Dd95c90e0338468F60571258446c10
-Auction Proxy deployed at  0x4E206D6C51aF035BFFD7B5106d104F0D2bD8FB8b
-VolcanoERC721Factory deployed to: 0xfFf960E1f7553c9fdBd976ff2D9e6e46C7875af1
-VolcanoERC721Tradable deployed to: 0xCDF788A601a9Cb00C7D9fEceC19005494CC9E8E7
-VolcanoERC1155Factory deployed to: 0x190d28C9941b962E896a6aEF2F5222A84AbB655b
-VolcanoERC1155Tradable deployed to: 0xe49022255aAc921f987e53502124c430283Be11D
-VolcanoTokenRegistry deployed to 0xf0f44B2cd03eb5aa75C131f5382c514c413a5367
-VolcanoAddressRegistry deployed to 0x3b24758616bC022AA2138bED2Bc36a33EBcBBcA8
-VolcanoPriceFeed deployed to 0xcDD7D78a079d7605B8173109C2Ed7658E81b38EE
-Deployer's balance:  12136926756200000000n
+Deployer's address:  0xE8aF6d7e77f5D9953d99822812DCe227551df1D7
+Deployer's balance:  97514269700000000n
+Marketplace Proxy deployed at  0xbE7380A00ee08eF2df78548236b01eeCEECD60A9
+Bundle Marketplace Proxy deployed at  0x84f3D9EaE27B121EFD0072b21b4E324B3996B867
+Auction Proxy deployed at  0x7F8a25674Af96B36ed2129AF61BdAe685b2007e5
+VolcanoERC721Factory deployed to: 0x2C759982d596323b6520B862B60a257AcDA58983
+VolcanoERC721Tradable deployed to: 0x6aa56E143f718a72930756947E20c7bDA62191f3
+VolcanoERC1155Factory deployed to: 0xFf610A41C5Cda0c7b2824dD816d93B2c4A1a174B
+VolcanoERC1155Tradable deployed to: 0x084dD992bbD5B4fFee212F18C7398903411bfb3C
+VolcanoTokenRegistry deployed to 0x5faE05835bbdb62Fd408EedBbfE76EF2b72435d3
+VolcanoAddressRegistry deployed to 0x99621a66edf5B9e16B510Ff8A2A56094D698c275
+VolcanoPriceFeed deployed to 0xA676caEBE626F6A4Aa866a568325D7CD6F939406
+Deployer's balance:  90788475000000000n
+//
+RandomNumberOracle deployed to: 0x3Dee8F014F7edf2D838D95FB357BF5964C3E53a6
+PriceOracleProxy deployed to: 0x96F8fA9c76658604C9405e99174792c5400e5bAd
 
 // Sepolia
 Deployer's address:  0xE8aF6d7e77f5D9953d99822812DCe227551df1D7
