@@ -5,6 +5,8 @@
 async function main(network) {
 
     console.log('network: ', network.name);
+	
+	const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
     const [deployer] = await ethers.getSigners();
     const deployerAddress = await deployer.getAddress();
@@ -105,7 +107,10 @@ async function main(network) {
     await addressRegistry.updatePriceFeed(await priceFeed.getAddress());
     await addressRegistry.updateErc1155Factory(await erc1155Factory.getAddress());   
 
-    await tokenRegistry.add(WRAPPED_WETH);
+	// allow 'WRAPPED_WETH' usage
+	await tokenRegistry.add(WRAPPED_WETH);
+	// allow 'native token' usage
+    await tokenRegistry.add(ZERO_ADDRESS);	
     
     const finalbalance = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, finalbalance);
