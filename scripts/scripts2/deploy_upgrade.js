@@ -15,15 +15,19 @@ async function main(network) {
 	// Marketplace Proxy deployed at  0xbE7380A00ee08eF2df78548236b01eeCEECD60A9
 	const oldAddress = '0xbE7380A00ee08eF2df78548236b01eeCEECD60A9';	
 	const VolcanoMarketplaceOld = artifacts.require('VolcanoMarketplace');
-	const VolcanoMarketplaceUpgraded = artifacts.require('VolcanoMarketplace');
+	const VolcanoMarketplaceUpgraded = artifacts.require('VolcanoMarketplaceV1');
   
 	const volcanoMarketplaceOld = await VolcanoMarketplaceOld.at(oldAddress);
 	const oldRegistryAddress = await volcanoMarketplaceOld.addressRegistry();
 	console.log('old address = ', oldAddress, ' - registry: ', oldRegistryAddress);
 	
-	volcanoMarketplaceUpgraded = await upgrades.upgradeProxy(VolcanoMarketplaceOld.address, VolcanoMarketplaceUpgraded, { kind: 'uups' });
+	const VolcanoMarketplaceUpgradedFactory = await ethers.getContractFactory('VolcanoMarketplaceV1');
+	volcanoMarketplaceUpgraded = await upgrades.upgradeProxy(oldAddress, VolcanoMarketplaceUpgradedFactory, { kind: 'uups' });
+	console.log('upgrades.upgradeProxy called');
 	await volcanoMarketplaceUpgraded.waitForDeployment();
+	console.log('volcanoMarketplaceUpgraded deployed');
 	const newAddress = await volcanoMarketplaceUpgraded.getAddress(); 
+	console.log('new address = ', newAddress);
 	const newRegistryAddress = await this.volcanoMarketplaceUpgraded.addressRegistry();
 	console.log('new address = ', newAddress, ' - registry: ', newRegistryAddress);
     ////////    
