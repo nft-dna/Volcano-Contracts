@@ -495,6 +495,9 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         delete (listings[_nftAddress][_tokenId][_owner]);
     }
 
+    receive () external payable  {    
+    }        
+
     /// @notice Method for offering item
     /// @param _nftAddress NFT contract address
     /// @param _tokenId TokenId
@@ -509,7 +512,9 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         uint256 _quantity,
         uint256 _pricePerItem,
         uint256 _deadline
-    ) external offerNotExists(_nftAddress, _tokenId, msg.sender) {
+    )   external 
+        payable		
+        offerNotExists(_nftAddress, _tokenId, msg.sender) {
         require(
             IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC721) ||
                 IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC1155),
@@ -531,6 +536,11 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         require(_deadline > _getNow(), "invalid expiration");
 
         _validPayToken(address(_payToken));
+
+        if (_payToken == address(0)) {
+            uint256 price = offer.pricePerItem * offer.quantity;
+            require(msg.value == price, "insufficient or incorrect value to offer");		
+        }     
 
         offers[_nftAddress][_tokenId][msg.sender] = Offer(
             _payToken,
@@ -557,6 +567,12 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         external
         offerExists(_nftAddress, _tokenId, msg.sender)
     {
+        Offer memory offer = offers[_nftAddress][_tokenId][msg.sender];
+        if (offer.payToken == address(0)) {
+            uint256 price = offer.pricePerItem * offer.quantity;
+            (bool feeTransferSuccess, ) = payable(msg.sender).transfer(price);
+            require(feeTransferSuccess, "VolcanoMarketplace: Refund transfer failed");
+        } 
         delete (offers[_nftAddress][_tokenId][msg.sender]);
         emit OfferCanceled(msg.sender, _nftAddress, _tokenId);
     }
@@ -578,30 +594,50 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         uint256 feeAmount = (price * platformFee) / 1e3;
         uint256 royaltyFee;
 
-        offer.payToken.safeTransferFrom(_creator, feeReceipient, feeAmount);
+        if (offer.payToken == address(0)) {
+            (bool feeTransferSuccess, ) = payable(feeReceipient).transfer(feeAmount);
+            require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
+        } else {
+            offer.payToken.safeTransferFrom(_creator, feeReceipient, feeAmount);
+        }
 
         address minter = minters[_nftAddress][_tokenId];
         uint16 royalty = royalties[_nftAddress][_tokenId];
 
         if (minter != address(0) && royalty != 0) {
             royaltyFee = ((price - feeAmount) * royalty) / 10000;
-            offer.payToken.safeTransferFrom(_creator, minter, royaltyFee);
+			if (offer.payToken == address(0)) {
+				(bool royaltyFeeTransferSuccess, ) = payable(minter).transfer(royaltyFee);
+				require(royaltyFeeTransferSuccess, "VolcanoMarketplace: RoyaltyFee transfer failed");
+			} else {            
+                offer.payToken.safeTransferFrom(_creator, minter, royaltyFee);
+            }
             feeAmount = feeAmount + royaltyFee;
         } else {
             minter = collectionRoyalties[_nftAddress].feeRecipient;
             royalty = collectionRoyalties[_nftAddress].royalty;
             if (minter != address(0) && royalty != 0) {
                 royaltyFee = ((price - feeAmount) * royalty) / 10000;
-                offer.payToken.safeTransferFrom(_creator, minter, royaltyFee);
+                if (offer.payToken == address(0)) {
+                    (bool royaltyFeeTransferSuccess, ) = payable(minter).transfer(royaltyFee);
+                    require(royaltyFeeTransferSuccess, "VolcanoMarketplace: RoyaltyFee transfer failed");
+                } else {                
+                    offer.payToken.safeTransferFrom(_creator, minter, royaltyFee);
+                }
                 feeAmount = feeAmount + royaltyFee;
             }
         }
 
-        offer.payToken.safeTransferFrom(
-            _creator,
-            msg.sender,
-            price - feeAmount
-        );
+		if (offer.payToken == address(0)) {
+            (bool ownerTransferSuccess, ) = payable(msg.sender).transfer(price - feeAmount);
+            require(ownerTransferSuccess, "VolcanoMarketplace: Owner transfer failed");		
+		} else {
+            offer.payToken.safeTransferFrom(
+                _creator,
+                msg.sender,
+                price - feeAmount
+            );
+        }
 
         // Transfer NFT to buyer
         if (IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC721)) {
