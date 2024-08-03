@@ -31,6 +31,7 @@ VolcanoTokenRegistry deployed to 0x8724c2A56c465c3175007E84e870cEaA0a7afC93
 VolcanoAddressRegistry deployed to 0x762e9C42ff93f8850ce8E4e001c16d3d75e678E8
 VolcanoPriceFeed deployed to 0x71fe4aB56fCCdD82045493548309ADe46830741c
 Deployer's balance:  2653468233299124825n
+// Sepolia wETH 0xaE327De268372aAB71c0b54c99A41427142D58Ca
 //
 RandomNumberOracle deployed to: 0x762ff0701c4a086773468CB721a1E6533C72897c
 PriceOracleProxy deployed to: 0xDE02bfF014E88bD18839a23FbD0EaC883f526524
