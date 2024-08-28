@@ -110,9 +110,13 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
 
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
-        // Send FTM fee to fee recipient
-        (bool success,) = feeReceipient.call{ value : msg.value }("");
-        require(success, "Transfer failed");
+		
+		if (mintFee)
+		{
+			// Send FTM fee to fee recipient
+			(bool success,) = feeReceipient.call{ value : msg.value }("");
+			require(success, "Transfer failed");
+		}
 
         emit Minted(tokenId, to, uri, msg.sender);
     }

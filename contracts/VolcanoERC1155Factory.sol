@@ -97,16 +97,16 @@ contract VolcanoERC1155Factory is Ownable {
     /// @notice Method for deploy new VolcanoERC1155Tradable contract
     /// @param _name Name of NFT contract
     /// @param _symbol Symbol of NFT contract
-    function createNFTContract(string memory _name, string memory _symbol, bool _private, uint256 _mintFee, uint256 _creatorFee, address payable _feeRecipient)
+    function createNFTContract(string memory _name, string memory _symbol, bool _isprivate, uint256 _mintFee, uint256 _creatorFee, address payable _feeRecipient)
         external
         payable
         returns (address)
     {
         require(msg.value == platformFee, "Insufficient funds.");
-	if (platformFee > 0) {
+		if (platformFee > 0) {
 	        (bool success,) = feeRecipient.call{value: msg.value}("");
         	require(success, "Transfer failed");
-	}
+		}
 
         VolcanoERC1155Tradable nft = new VolcanoERC1155Tradable(
             _name,
@@ -117,12 +117,12 @@ contract VolcanoERC1155Factory is Ownable {
             _mintFee,
             _creatorFee,
             _feeRecipient,
-            _private
+            _isprivate
         );
         exists[address(nft)] = true;
-        isprivate[address(nft)] = _private;
+        isprivate[address(nft)] = _isprivate;
         nft.transferOwnership(_msgSender());
-        emit ContractCreated(_msgSender(), address(nft), _private);
+        emit ContractCreated(_msgSender(), address(nft), _isprivate);
         return address(nft);
     }
 

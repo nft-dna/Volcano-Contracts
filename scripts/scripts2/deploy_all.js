@@ -14,7 +14,7 @@ async function main(network) {
     const balance  = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, balance);
   
-    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET } = require('../constants');
+    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE } = require('../constants');
   
 
     /////////
@@ -44,7 +44,7 @@ async function main(network) {
 
     ///////
     const volcanoERC721Factory = await ethers.getContractFactory('VolcanoERC721Factory');
-    const erc721Factory = await volcanoERC721Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
+    const erc721Factory = await volcanoERC721Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE);
     await erc721Factory.waitForDeployment();        
     console.log('VolcanoERC721Factory deployed to:', await erc721Factory.getAddress());
     ///////
@@ -59,7 +59,7 @@ async function main(network) {
     
     ////////
     const volcanoERC1155Factory = await ethers.getContractFactory('VolcanoERC1155Factory');
-    const erc1155Factory = await volcanoERC1155Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, '50000000000000000000');
+    const erc1155Factory = await volcanoERC1155Factory.deploy(AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE);
     await erc1155Factory.waitForDeployment();
     console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
     ////////

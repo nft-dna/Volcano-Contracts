@@ -103,10 +103,11 @@ contract VolcanoERC721Factory is Ownable {
         returns (address)
     {
         require(msg.value == platformFee, "Insufficient funds.");
-	if (platformFee > 0) {
+		if (platformFee > 0)
+		{
         	(bool success,) = feeRecipient.call{value: msg.value}("");
 	        require(success, "Transfer failed");
-	}
+		}
 
         VolcanoERC721Tradable nft = new VolcanoERC721Tradable(
             _name,

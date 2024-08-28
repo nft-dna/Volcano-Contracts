@@ -118,8 +118,11 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         //    emit URI(uri, id);
         //}        
 
-        (bool success,) = feeReceipient.call{ value : msg.value }("");
-        require(success, "Transfer failed");
+		if (mintFee)
+		{
+			(bool success,) = feeReceipient.call{ value : msg.value }("");
+			require(success, "Transfer failed");
+		}
 
        emit Minted(id, amount, account, uri, msg.sender);
     }
