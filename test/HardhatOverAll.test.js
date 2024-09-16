@@ -34,6 +34,7 @@ const MockERC20 = artifacts.require('MockERC20');
 const MARKETPLACE_MINT_COST = '50'  // 5%
 const AUCTION_MINT_COST = '25'  // 5%
 const MINT_COST = '2';  // ether
+const CONTRACT_COST = '0';  // ether
 
 const weiToEther = (n) => {
     return web3.utils.fromWei(n.toString(), 'ether');
@@ -50,6 +51,8 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
     const marketPlatformFee = web3.utils.toWei(MARKETPLACE_MINT_COST, 'wei');
     const auctionPlatformFee = web3.utils.toWei(AUCTION_MINT_COST, 'wei');    
     const mintCost = web3.utils.toWei(MINT_COST, 'ether');
+	const contractCost = web3.utils.toWei(CONTRACT_COST, 'ether');
+	
 
     beforeEach(async function () {
         
@@ -88,7 +91,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
         this.volcanoBundleMarketplace = await VolcanoBundleMarketplace.at(this.volcanoBundleMarketplaceEthers.address);           
         await this.volcanoBundleMarketplace.updateAddressRegistry(this.volcanoAddressRegistry.address);
 
-        this.VolcanoERC721Factory = await VolcanoERC721Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, mintCost);
+        this.VolcanoERC721Factory = await VolcanoERC721Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, contractCost, mintCost);
         this.volcanoTokenRegistry = await VolcanoTokenRegistry.new();
 
         this.mockERC20 = await MockERC20.new("wFTM", "wFTM", ether('1000000'));
@@ -97,7 +100,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
 
         this.volcanoPriceFeed = await VolcanoPriceFeed.new(this.volcanoAddressRegistry.address, this.mockERC20.address);
 
-        this.VolcanoERC1155Factory = await VolcanoERC1155Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, mintCost);
+        this.VolcanoERC1155Factory = await VolcanoERC1155Factory.new(this.volcanoAuction.address, this.volcanoMarketplace.address, this.volcanoBundleMarketplace.address, platformFeeRecipient, contractCost, mintCost);
 
         //await this.volcanoAddressRegistry.updateVolcanoCom(this.erc721nft.address);
         await this.volcanoAddressRegistry.updateAuction(this.volcanoAuction.address);
@@ -146,7 +149,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             A buyer then buys that NFT
             `);
 
-            let addressBalance = await this.erc721nft.mintFee();
+            let addressBalance = await this.erc721nft.mintCreatorFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 
@@ -314,7 +317,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             He/She then put it on an auction with reserve price of 20 wFTMs
             Bidder1, bidder2, bidder3 then bid the auction with 20 wFTMs, 25 wFTMs, and 30 wFTMs respectively`);
 
-            let addressBalance = await this.erc721nft.mintFee();
+            let addressBalance = await this.erc721nft.mintCreatorFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 
@@ -545,7 +548,7 @@ contract('Overall Test',  function ([owner, platformFeeRecipient, artist, buyer,
             He/She then put them on the marketplace as bundle price of 20 wFTMs
             A buyer then buys them for 20 wFTMs`);
 
-            let addressBalance = await this.erc721nft.mintFee();
+            let addressBalance = await this.erc721nft.mintCreatorFee();
             console.log(`
             Platform Fee: ${weiToEther(addressBalance)}`);
 

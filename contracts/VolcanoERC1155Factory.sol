@@ -6,7 +6,7 @@ import "./VolcanoERC1155Tradable.sol";
 
 contract VolcanoERC1155Factory is Ownable {
     /// @dev Events of the contract
-    event ContractCreated(address creator, address nft, bool isprivate);
+    event ContractCreated(address platform, address nft, bool isprivate);
     event ContractDisabled(address caller, address nft);
 
     /// @notice Volcano auction contract address;
@@ -18,13 +18,16 @@ contract VolcanoERC1155Factory is Ownable {
     /// @notice Volcano bundle marketplace contract address;
     address public bundleMarketplace;
 
-    /// @notice Platform fee for deploying new NFT contract
-    uint256 public platformFee;
+    /// @notice Creator fee for deploying new NFT contract
+    uint256 public platformContractFee;
     address payable public feeRecipient;
 
     /// @notice NFT Address => Bool
     mapping(address => bool) public exists;
     mapping(address => bool) public isprivate;
+	
+    /// @notice platform Mint fee
+    uint256 public platformMintFee;    	
 
     bytes4 private constant INTERFACE_ID_ERC1155 = 0xd9b67a26;
 
@@ -34,13 +37,15 @@ contract VolcanoERC1155Factory is Ownable {
         address _marketplace,
         address _bundleMarketplace,
         address payable _feeRecipient,
-        uint256 _platformFee
+        uint256 _platformContractFee, 
+		uint256 _platformMintFee
     )  {
         auction = _auction;
         marketplace = _marketplace;
         bundleMarketplace = _bundleMarketplace;
         feeRecipient = _feeRecipient;
-        platformFee = _platformFee;
+        platformContractFee = _platformContractFee;
+        platformMintFee = _platformMintFee;		
     }
 
     /*
@@ -74,13 +79,22 @@ contract VolcanoERC1155Factory is Ownable {
     }
 
     /**
-    @notice Update platform fee
+    @notice Update platform contract fee
     @dev Only admin
-    @param _platformFee uint256 the platform fee to set
+    @param _platformContractFee uint256 the platform contract fee to set
     */
-    function updatePlatformFee(uint256 _platformFee) external onlyOwner {
-        platformFee = _platformFee;
+    function updatePlatformContractFee(uint256 _platformContractFee) external onlyOwner {
+        platformContractFee = _platformContractFee;
     }
+	
+    /**
+    @notice Update platform mint fee
+    @dev Only admin
+    @param _platformMintFee uint256 the platform mint fee to set
+    */    
+	function updatePlatformMintFee(uint256 _platformMintFee) external onlyOwner {
+        platformMintFee = _platformMintFee;
+    }		
 
     /**
      @notice Method for updating platform fee address
@@ -97,16 +111,23 @@ contract VolcanoERC1155Factory is Ownable {
     /// @notice Method for deploy new VolcanoERC1155Tradable contract
     /// @param _name Name of NFT contract
     /// @param _symbol Symbol of NFT contract
-    function createNFTContract(string memory _name, string memory _symbol, bool _isprivate, uint256 _mintFee, uint256 _creatorFee, address payable _feeRecipient)
+    function createNFTContract(
+        string memory _name, 
+        string memory _symbol, 
+        bool _private, 
+        uint256 _mintFee,       
+        uint256 _creatorFee, 
+        address payable _feeRecipient,
+        VolcanoERC1155Tradable.contractERC1155Options memory _options)
         external
         payable
         returns (address)
     {
-        require(msg.value == platformFee, "Insufficient funds.");
-		if (platformFee > 0) {
-	        (bool success,) = feeRecipient.call{value: msg.value}("");
-        	require(success, "Transfer failed");
-		}
+        require(msg.value == platformContractFee, "Insufficient funds.");
+        if (platformContractFee > 0) {
+                (bool success,) = feeRecipient.call{value: msg.value}("");
+                require(success, "Transfer failed");
+        }
 
         VolcanoERC1155Tradable nft = new VolcanoERC1155Tradable(
             _name,
@@ -114,15 +135,17 @@ contract VolcanoERC1155Factory is Ownable {
             auction,
             marketplace,
             bundleMarketplace,
+			address(this),
             _mintFee,
             _creatorFee,
             _feeRecipient,
-            _isprivate
+            _private,
+            _options
         );
         exists[address(nft)] = true;
-        isprivate[address(nft)] = _isprivate;
+        isprivate[address(nft)] = _private;
         nft.transferOwnership(_msgSender());
-        emit ContractCreated(_msgSender(), address(nft), _isprivate);
+        emit ContractCreated(_msgSender(), address(nft), _private);
         return address(nft);
     }
 

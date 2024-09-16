@@ -7,20 +7,33 @@ import "../VolcanoERC721Tradable.sol";
 contract MockVolcanoERC721Tradable is VolcanoERC721Tradable {
 
 /*
+    struct contractERC721Options {
+        bool usebaseuri;
+        string baseUri;
+        string baseUriExt;
+        uint256 maxItems;
+        uint256 mintStartTime;
+        uint256 mintStopTime;
+    } 
+	
 VolcanoERC721Tradable 
         string memory _name,
         string memory _symbol,
         address _auction,
         address _marketplace,
         address _bundleMarketplace,
-        uint256 _mintFee,
+		address _factory,
+        uint256 _mintCreatorFee,
+        //uint256 _mintPlatformFee,           
         uint256 _creatorFee,
         address payable _feeReceipient,
-        bool _isprivate
+        bool _isprivate,
+        contractERC721Options memory _options
 */
     /// @notice Contract constructor
     constructor(address payable _feeRecipient, uint256 _platformFee) 
-    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false) 
+	//VolcanoERC721Tradable.contractERC721Options memory sin = VolcanoERC721Tradable.contractERC721Options(true, "usebaseuri", "baseUriExt", 1000, 0, 0);
+    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false, VolcanoERC721Tradable.contractERC721Options(true, "usebaseuri", "baseUriExt", 1000, 0, 0)) 
     {
     }
 
