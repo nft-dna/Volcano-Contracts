@@ -1,3 +1,4 @@
+// npx hardhat test ./test/VolcanoAuction.test.js --network localhost
 const {
     expectRevert,
     expectEvent,

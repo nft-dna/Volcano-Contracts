@@ -14,7 +14,7 @@ async function main(network) {
     const balance  = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, balance);
   
-    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE } = require('../constants');
+    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE, ERC20_ROUTER_ADDRESS } = require('../constants');
   
 
     /////////
@@ -48,25 +48,7 @@ async function main(network) {
     await erc721Factory.waitForDeployment();        
 	const FACTORY_ERC721_ADDRESS = await erc721Factory.getAddress(); 
     console.log('VolcanoERC721Factory deployed to:', await erc721Factory.getAddress());
-    ///////
-   
-
-    ///////
-	/* only for debug ...
-    const contractERC721Options = {
-       usebaseuri: true,
-       baseUri: "",
-       baseUriExt: "",
-       maxItems: '1000',
-       mintStartTime: '0',
-       mintStopTime: '0',
-    }	
-    const volcanoERC721Tradable = await ethers.getContractFactory('VolcanoERC721Tradable');   
-    const erc721Tradable = await volcanoERC721Tradable.deploy('VolcanoERC721', 'MVLC', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, FACTORY_ERC721_ADDRESS, '50000000000000000', '50000000000000000', TREASURY_ADDRESS, false, contractERC721Options);
-    await erc721Tradable.waitForDeployment();    
-    console.log('VolcanoERC721Tradable deployed to:', await erc721Tradable.getAddress());
-	*/
-    ////////
+    ///////  
     
     ////////
     const volcanoERC1155Factory = await ethers.getContractFactory('VolcanoERC1155Factory');
@@ -74,23 +56,15 @@ async function main(network) {
     await erc1155Factory.waitForDeployment();
 	const FACTORY_ERC1155_ADDRESS = await erc1155Factory.getAddress(); 
     console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
+    ////////    
+	
     ////////
-    
-    ////////
-	/* only for debug ...
-    const contractERC1155Options = {
-        baseUri: "",
-		maxItems: '1000',	
-		maxItemSupply: '100',
-		mintStartTime: '0',
-		mintStopTime: '0',
-    }		
-    const volcanoERC1155Tradable = await ethers.getContractFactory('VolcanoERC1155Tradable');
-    const erc1155Tradable = await volcanoERC1155Tradable.deploy('VolcanoERC1155', 'MVLC', AUCTION_PROXY_ADDRESS, MARKETPLACE_PROXY_ADDRESS, BUNDLE_MARKETPLACE_PROXY_ADDRESS, FACTORY_ERC1155_ADDRESS, '50000000000000000', '50000000000000000', TREASURY_ADDRESS, false, contractERC1155Options);
-    await erc1155Tradable.waitForDeployment();
-    console.log('VolcanoERC1155Tradable deployed to:', await erc1155Tradable.getAddress());
-	*/
-    ///////
+    const volcanoERC20Factory = await ethers.getContractFactory('VolcanoERC20Factory');
+    const erc20Factory = await volcanoERC20Factory.deploy(0/*PLATFORM_ERC20FACTORY_NATIVE_PERC*/, 0/*PLATFORM_ERC20FACTORY_TOKEN_PERC*/, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE, ERC20_ROUTER_ADDRESS);
+    await erc20Factory.waitForDeployment();
+	const FACTORY_ERC20_ADDRESS = await erc20Factory.getAddress(); 
+    console.log('VolcanoERC20Factory deployed to:', await erc20Factory.getAddress());
+    ////////	
     
     ////////
     const TokenRegistry = await ethers.getContractFactory('VolcanoTokenRegistry');
@@ -124,9 +98,11 @@ async function main(network) {
     await addressRegistry.updateMarketplace(MARKETPLACE_PROXY_ADDRESS);
     await addressRegistry.updateBundleMarketplace(BUNDLE_MARKETPLACE_PROXY_ADDRESS);
     await addressRegistry.updateErc721Factory(FACTORY_ERC721_ADDRESS);
+    await addressRegistry.updateErc1155Factory(FACTORY_ERC1155_ADDRESS);  
+	await addressRegistry.updateErc20Factory(FACTORY_ERC20_ADDRESS);  
     await addressRegistry.updateTokenRegistry(await tokenRegistry.getAddress());
     await addressRegistry.updatePriceFeed(await priceFeed.getAddress());
-    await addressRegistry.updateErc1155Factory(FACTORY_ERC1155_ADDRESS);   
+ 
 
 	// allow 'WRAPPED_WETH' usage
 	await tokenRegistry.add(WRAPPED_WETH);

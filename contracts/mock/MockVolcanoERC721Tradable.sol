@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity ^0.8.21;
 
 
 import "../VolcanoERC721Tradable.sol";
@@ -8,7 +8,6 @@ contract MockVolcanoERC721Tradable is VolcanoERC721Tradable {
 
 /*
     struct contractERC721Options {
-        bool usebaseuri;
         string baseUri;
         string baseUriExt;
         uint256 maxItems;
@@ -32,8 +31,7 @@ VolcanoERC721Tradable
 */
     /// @notice Contract constructor
     constructor(address payable _feeRecipient, uint256 _platformFee) 
-	//VolcanoERC721Tradable.contractERC721Options memory sin = VolcanoERC721Tradable.contractERC721Options(true, "usebaseuri", "baseUriExt", 1000, 0, 0);
-    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false, VolcanoERC721Tradable.contractERC721Options(true, "usebaseuri", "baseUriExt", 1000, 0, 0)) 
+    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false, VolcanoERC721Tradable.contractERC721Options("", "", 1000, 0, 0)) 
     {
     }
 

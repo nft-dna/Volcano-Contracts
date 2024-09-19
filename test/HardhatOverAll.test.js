@@ -1,4 +1,4 @@
-// npx hardhat test ./test/HardhatOverAll.test.js --network localhost; 
+// npx hardhat test ./test/HardhatOverAll.test.js --network localhost
 // run first (in another shell): npx hardhat node
 //   on Error: Cannot find module '@openzeppelin/test-helpers'
 //     yarn add @openzeppelin/test-helpers

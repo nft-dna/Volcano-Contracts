@@ -20,16 +20,19 @@ contract VolcanoAddressRegistry is Ownable {
     address public bundleMarketplace;
 
     /// @notice VolcanoERC721Factory contract
-    address public erc721factory;
+    address public erc721Factory;
 
     /// @notice VolcanoERC721FactoryPrivate contract
-    address public privateErc721Factory;
+    //address public privateErc721Factory;
 
     /// @notice VolcanoErc1155Factory contract
     address public erc1155Factory;
 
     /// @notice VolcanoErc1155FactoryPrivate contract
-    address public privateErc1155Factory;
+    //address public privateErc1155Factory;
+	
+    /// @notice VolcanoERC20Factory contract
+    address public erc20Factory;	
 
     /// @notice VolcanoTokenRegistry contract
     address public tokenRegistry;
@@ -91,19 +94,19 @@ contract VolcanoAddressRegistry is Ownable {
         external 
         onlyOwner 
     {
-        erc721factory = _erc721factory;
+        erc721Factory = _erc721factory;
     }
 
     /**
      @notice Update VolcanoErc721FactoryPrivate contract
      @dev Only admin
-     */
     function updateErc721FactoryPrivate(address _privateErc721Factory)
         external
         onlyOwner
     {
         privateErc721Factory = _privateErc721Factory;
     }
+    */	
 
     /**
      @notice Update VolcanoErc1155Factory contract
@@ -114,18 +117,29 @@ contract VolcanoAddressRegistry is Ownable {
         onlyOwner 
     {
         erc1155Factory = _erc1155Factory;
-    }
+    }	
 
     /**
      @notice Update VolcanoErc1155FactoryPrivate contract
      @dev Only admin
-     */
     function updateErc1155FactoryPrivate(address _privateErc1155Factory)
         external
         onlyOwner
     {
         privateErc1155Factory = _privateErc1155Factory;
     }
+    */	
+	
+    /**
+     @notice Update VolcanoErc20Factory contract
+     @dev Only admin
+     */
+    function updateErc20Factory(address _erc20Factory) 
+        external 
+        onlyOwner 
+    {
+        erc20Factory = _erc20Factory;
+    }		
 
     /**
      @notice Update token registry contract

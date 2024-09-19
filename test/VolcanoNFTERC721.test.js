@@ -1,3 +1,4 @@
+// npx hardhat test ./test/VolcanoNFTERC721.test.js --network localhost
 const {
   BN,
   ether,

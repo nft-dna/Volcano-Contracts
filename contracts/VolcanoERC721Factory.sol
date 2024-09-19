@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./VolcanoERC721Tradable.sol";
@@ -116,7 +116,7 @@ contract VolcanoERC721Factory is Ownable {
         string memory _symbol,
         bool _isprivate,
         uint256 _mintFee, 
-        uint256 _creatorFee, 
+        uint256 _creatorFeePerc, 
         address payable _feeRecipient,
         VolcanoERC721Tradable.contractERC721Options memory _options)
         external
@@ -137,7 +137,7 @@ contract VolcanoERC721Factory is Ownable {
             bundleMarketplace,
 			address(this),
             _mintFee,
-            _creatorFee,
+            _creatorFeePerc,
             _feeRecipient,
             _isprivate,
             _options

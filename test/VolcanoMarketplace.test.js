@@ -1,3 +1,4 @@
+// npx hardhat test ./test/VolcanoMarketplace.test.js --network localhost
 const {
     BN,
     ether,

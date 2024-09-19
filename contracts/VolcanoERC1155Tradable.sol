@@ -1,15 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+//import "@openzeppelin/contracts/utils/Strings.sol"; 
 import "./VolcanoMarketplace.sol";
 import "./VolcanoERC1155Factory.sol";
 
-contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply {
+// uri metadata format defined in:
+// https://eips.ethereum.org/EIPS/eip-1155#metadata-extensions
+
+
+contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply  {
     
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -28,15 +33,17 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     // Volcano ERC1155 Factory contract
     address factory;	
 
-    bool isprivate;   
-    //bool usebaseuri;        
+    bool public isprivate;   
+    bool public usebaseUriOnly;
+    string public baseUri;            
+    string public baseUriExt;          
 
     uint256 public mintCreatorFee;
     //uint256 public mintPlatformFee;    
-    uint256 public creatorFee;
+    uint256 public creatorFeePerc;
     address payable public feeReceipient;
 
-    uint256 public maxItems;
+    uint256 public maxSupply;
     uint256 public maxItemSupply;   
     uint256 public mintStartTime;        
     uint256 public mintStopTime;       
@@ -46,11 +53,12 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         uint256 tokenId,
         uint256 amount, 
         address beneficiary,
+        string uri,
         bytes data,
         address minter
     );
     event UpdateCreatorFee(
-        uint256 creatorFee
+        uint256 creatorFeePerc
     );
     event UpdateFeeRecipient(
         address payable feeRecipient
@@ -58,6 +66,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
 
     struct contractERC1155Options {
         string baseUri;
+        bool usebaseUriOnly;
+        string baseUriExt;        
         uint256 maxItems;
         uint256 maxItemSupply;
         uint256 mintStartTime;
@@ -73,11 +83,11 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
 		address _factory,
         uint256 _mintCreatorFee,
         //uint256 _mintPlatformFee,           
-        uint256 _creatorFee,
+        uint256 _creatorFeePerc,
         address payable _feeReceipient,
         bool _isprivate,
         contractERC1155Options memory _options
-    ) ERC1155(_options.baseUri) {
+    ) ERC1155(_options.usebaseUriOnly ? _options.baseUri : string(bytes.concat(bytes(_options.baseUri), "/{id}", bytes(_options.baseUriExt)))) {
         require(_options.mintStopTime == 0 || block.timestamp < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStopTime == 0 || _options.mintStartTime < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStartTime == 0 || block.timestamp < _options.mintStartTime, "err mintStartTime");        
@@ -88,15 +98,17 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         bundleMarketplace = _bundleMarketplace;
 		factory = _factory;
         mintCreatorFee = (_isprivate ? 0 : _mintCreatorFee);
-        creatorFee = _creatorFee;
+        creatorFeePerc = _creatorFeePerc;
         //mintPlatformFee = _mintPlatformFee;        
         feeReceipient = _feeReceipient;
         isprivate = _isprivate;      
-        //usebaseuri = _usebaseuri;
+        usebaseUriOnly = _options.usebaseUriOnly;
         //if (_usebaseuri) {
         //    _setBaseURI(_baseUri);
         //}        
-        maxItems = _options.maxItems;     
+        baseUri = _options.baseUri;          
+        baseUriExt = _options.baseUriExt;        
+        maxSupply = _options.maxItems;     
         maxItemSupply = _options.maxItemSupply;       
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;
@@ -117,14 +129,39 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     //    return ...;
     //}
 
+    // uri(uint256 id)
+    /*
+    The EIP says:
+
+    The string format of the substituted hexadecimal ID MUST be lowercase alphanumeric: [0-9a-f] with no 0x prefix.
+    The string format of the substituted hexadecimal ID MUST be leading zero padded to 64 hex characters length if necessary.
+    So given a URI like ipfs://uri/{id}.json for token with id 250, a compliant client would have to use the last one you shared:
+
+    ipfs://uri/00000000000000000000000000000000000000000000000000000000000000fa.json
+    */
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        return usebaseUriOnly ? baseUri : string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
+    }
+
+    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
+    function toHexString(uint256 value, uint256 length) public pure returns (string memory) {
+        bytes memory buffer = new bytes(length+2);
+        for (uint256 i = length + 1; i > 1; --i) {
+            buffer[i] = _HEX_SYMBOLS[value & 0xf];
+            value >>= 4;
+        }
+        require(value == 0, "Strings: hex length insufficient");
+        return string(buffer);
+    }
+
     /**
      @notice Method for updating platform fee
      @dev Only admin
-     @param _creatorFee uint256 the platform fee to set
+     @param _creatorFeePerc uint256 the platform fee to set
      */
-    function updateCreatorFee(uint256 _creatorFee) external onlyOwner {
-        creatorFee = _creatorFee;
-        emit UpdateCreatorFee(_creatorFee);
+    function updateCreatorFeePerc(uint256 _creatorFeePerc) external onlyOwner {
+        creatorFeePerc = _creatorFeePerc;
+        emit UpdateCreatorFee(_creatorFeePerc);
     }
 
     /**
@@ -148,14 +185,18 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
        require(block.timestamp >= mintStartTime, "not started");
        require(mintStopTime == 0 || block.timestamp < mintStopTime, "ended");
 
-       VolcanoERC1155Factory vfactory = VolcanoERC1155Factory(payable(factory));
-        uint256 mintPlatformFee = vfactory.platformMintFee();
-        require(msg.value == (mintCreatorFee + mintPlatformFee) /** amount*/, "Insufficient funds to mint.");
+		uint256 mintPlatformFee = 0;
+		if (factory != address(0)) {
+			VolcanoERC1155Factory vfactory = VolcanoERC1155Factory(payable(factory));
+			mintPlatformFee = vfactory.platformMintFee();
+		}
+		require(msg.value == (mintCreatorFee + mintPlatformFee) /** amount*/, "Insufficient funds to mint.");
         
         if (isprivate)
             require(owner() == msg.sender, "Only owner can mint");
 
-       require(maxItems == 0 || _tokenIdCounter.current() < maxItems, "Max Supply");
+       require(maxSupply == 0 || _tokenIdCounter.current() < maxSupply, "Max Supply");
+       require(amount > 0, "wrong amount");
        require(maxItemSupply == 0 || amount <= maxItemSupply, "Max Item Supply");
         
         _tokenIdCounter.increment();
@@ -172,13 +213,14 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         }
 
         if (mintPlatformFee > 0) {
-			VolcanoMarketplace vmarketplaced = VolcanoMarketplace(payable(marketplace));
-            address payable feeRecipient = vmarketplaced.feeReceipient();
+			//VolcanoMarketplace vmarketplaced = VolcanoMarketplace(payable(marketplace));
+			VolcanoERC1155Factory vfactory = VolcanoERC1155Factory(payable(factory));
+            address payable feeRecipient = /*vmarketplaced*/vfactory.feeRecipient();
             (bool success,) = feeRecipient.call{ value : mintPlatformFee /** amount*/ }("");
             require(success, "Transfer failed");
         }
 
-       emit Minted(id, amount, account, data, msg.sender);
+       emit Minted(id, amount, account, uri(id), data, msg.sender);
     }
  
 
