@@ -31,8 +31,8 @@ const VolcanoPriceFeed = artifacts.require('VolcanoPriceFeed');
 const MockERC20 = artifacts.require('MockERC20');
 
 
-const MARKETPLACE_MINT_COST = '50'  // 5%
-const AUCTION_MINT_COST = '25'  // 5%
+const MARKETPLACE_MINT_COST = '500'  // 5%
+const AUCTION_MINT_COST = '250'  // 2.5%
 const MINT_COST = '2';  // ether
 const CONTRACT_COST = '0';  // ether
 

@@ -35,7 +35,7 @@ contract('Core ERC721 tests for VolcanoCom', function([
     const secondTokenId = new BN('2');
     const nonExistentTokenId = new BN('99');
     const mintFee = new BN('5'); // mintFee
-    const platformFee = web3.utils.toWei('25', 'wei'); // marketplace platform fee: 2.5%
+    const platformFee = web3.utils.toWei('250', 'wei'); // marketplace platform fee: 2.5%
     const pricePerItem = new BN('1000000000000000000');
     const newPrice = new BN('500000000000000000');
 

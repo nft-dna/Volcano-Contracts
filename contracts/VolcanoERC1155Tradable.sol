@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 //import "@openzeppelin/contracts/utils/Strings.sol"; 
 import "./VolcanoMarketplace.sol";
@@ -14,7 +15,7 @@ import "./VolcanoERC1155Factory.sol";
 // https://eips.ethereum.org/EIPS/eip-1155#metadata-extensions
 
 
-contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply  {
+contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply, ERC2981  {
     
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -36,12 +37,14 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     bool public isprivate;   
     bool public usebaseUriOnly;
     string public baseUri;            
-    string public baseUriExt;          
+    string public baseUriExt;     
+    // Opensea json metadata format interface
+    string public contractURI;            
 
     uint256 public mintCreatorFee;
     //uint256 public mintPlatformFee;    
-    uint256 public creatorFeePerc;
-    address payable public feeReceipient;
+    uint96 public creatorFeePerc;
+    address payable public feeRecipient;
 
     uint256 public maxSupply;
     uint256 public maxItemSupply;   
@@ -58,7 +61,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         address minter
     );
     event UpdateCreatorFee(
-        uint256 creatorFeePerc
+        uint96 creatorFeePerc
     );
     event UpdateFeeRecipient(
         address payable feeRecipient
@@ -83,14 +86,15 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
 		address _factory,
         uint256 _mintCreatorFee,
         //uint256 _mintPlatformFee,           
-        uint256 _creatorFeePerc,
-        address payable _feeReceipient,
+        uint96 _creatorFeePerc,
+        address payable _feeRecipient,
         bool _isprivate,
         contractERC1155Options memory _options
     ) ERC1155(_options.usebaseUriOnly ? _options.baseUri : string(bytes.concat(bytes(_options.baseUri), "/{id}", bytes(_options.baseUriExt)))) {
         require(_options.mintStopTime == 0 || block.timestamp < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStopTime == 0 || _options.mintStartTime < _options.mintStopTime, "err mintStopTime");
-        require(_options.mintStartTime == 0 || block.timestamp < _options.mintStartTime, "err mintStartTime");        
+        require(_options.mintStartTime == 0 || block.timestamp < _options.mintStartTime, "err mintStartTime");       
+        require(_creatorFeePerc <= 10000, "invalid royalty"); 
         name = _name;
         symbol = _symbol;
         auction = _auction;
@@ -100,7 +104,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         mintCreatorFee = (_isprivate ? 0 : _mintCreatorFee);
         creatorFeePerc = _creatorFeePerc;
         //mintPlatformFee = _mintPlatformFee;        
-        feeReceipient = _feeReceipient;
+        feeRecipient = _feeRecipient;
         isprivate = _isprivate;      
         usebaseUriOnly = _options.usebaseUriOnly;
         //if (_usebaseuri) {
@@ -112,6 +116,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         maxItemSupply = _options.maxItemSupply;       
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;
+        _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
     /*
@@ -142,7 +147,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     function uri(uint256 tokenId) public view override returns (string memory) {
         return usebaseUriOnly ? baseUri : string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
     }
-
+    
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
     function toHexString(uint256 value, uint256 length) public pure returns (string memory) {
         bytes memory buffer = new bytes(length+2);
@@ -154,27 +159,34 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         return string(buffer);
     }
 
+    function updateContractURI(string memory _uri) public onlyOwner {
+        contractURI = _uri;
+    }   
+
     /**
      @notice Method for updating platform fee
      @dev Only admin
-     @param _creatorFeePerc uint256 the platform fee to set
+     @param _creatorFeePerc uint96 the platform fee to set
      */
-    function updateCreatorFeePerc(uint256 _creatorFeePerc) external onlyOwner {
+    function updateCreatorFeePerc(uint96 _creatorFeePerc) external onlyOwner {
+        require(_creatorFeePerc <= 10000, "invalid royalty");
         creatorFeePerc = _creatorFeePerc;
+        _setDefaultRoyalty(feeRecipient, creatorFeePerc);
         emit UpdateCreatorFee(_creatorFeePerc);
     }
 
     /**
      @notice Method for updating platform fee address
      @dev Only admin
-     @param _feeReceipient payable address the address to sends the funds to
+     @param _feeRecipient payable address the address to sends the funds to
      */
-    function updateFeeRecipient(address payable _feeReceipient)
+    function updateFeeRecipient(address payable _feeRecipient)
         external
         onlyOwner
     {
-        feeReceipient = _feeReceipient;
-        emit UpdateFeeRecipient(_feeReceipient);
+        feeRecipient = _feeRecipient;
+        _setDefaultRoyalty(feeRecipient, creatorFeePerc);
+        emit UpdateFeeRecipient(_feeRecipient);
     }  
 
     function mint(address account, uint256 amount, bytes memory data)
@@ -208,15 +220,14 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         //    emit URI(uri, id);
         //}        
         if (mintCreatorFee > 0) {
-            (bool success,) = feeReceipient.call{ value : mintCreatorFee /** amount*/ }("");
+            (bool success,) = feeRecipient.call{ value : mintCreatorFee /** amount*/ }("");
             require(success, "Transfer failed");
         }
 
         if (mintPlatformFee > 0) {
-			//VolcanoMarketplace vmarketplaced = VolcanoMarketplace(payable(marketplace));
-			VolcanoERC1155Factory vfactory = VolcanoERC1155Factory(payable(factory));
-            address payable feeRecipient = /*vmarketplaced*/vfactory.feeRecipient();
-            (bool success,) = feeRecipient.call{ value : mintPlatformFee /** amount*/ }("");
+            VolcanoERC1155Factory vfactory = VolcanoERC1155Factory(payable(factory));
+            address payable ffeeRecipient = /*vmarketplaced*/vfactory.feeRecipient();
+            (bool success,) = ffeeRecipient.call{ value : mintPlatformFee /** amount*/ }("");
             require(success, "Transfer failed");
         }
 
@@ -262,4 +273,12 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         return super.isApprovedForAll(_owner, _operator);
     }   
 
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, ERC2981)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 }

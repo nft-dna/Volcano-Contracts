@@ -27,7 +27,7 @@ const MockBiddingContract = artifacts.require('MockBiddingContract');
 const MockERC20 = artifacts.require('MockERC20');
 
 const mintFee = web3.utils.toWei('5', 'ether'); // mintFee
-const platformFee = web3.utils.toWei('75', 'wei'); // marketplace platform fee: 7.5%
+const platformFee = web3.utils.toWei('750', 'wei'); // marketplace platform fee: 7.5%
 const nonExistentTokenId = new BN('999');
 
 
@@ -909,8 +909,8 @@ contract('VolcanoAuction', (accounts) => {
                       const platformChanges = await platformFeeTracker.delta('wei');
                       expect(platformChanges).to.be.bignumber.equal(
                           (ether('0.4').sub(ether('0.1'))) // total minus reserve
-                          .div(new BN('1000'))
-                          .mul(new BN('75')) // only 12% of total
+                          .div(new BN('10000'))
+                          .mul(new BN('750')) // only 12% of total
                       );
                     } else {
                                      
@@ -918,8 +918,8 @@ contract('VolcanoAuction', (accounts) => {
                       //console.log("minterBalance: ", minterNewBalance.toString());                                     
                       expect(web3.utils.toBN(platformNewBalance - platformBalance).toString()).to.equal(
                           ((ether('0.4').sub(ether('0.1'))) // total minus reserve
-                          .div(new BN('1000'))
-                          .mul(new BN('75')) // only 7.5% of total
+                          .div(new BN('10000'))
+                          .mul(new BN('750')) // only 7.5% of total
                           ).toString());
                     }
      

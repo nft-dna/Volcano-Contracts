@@ -166,8 +166,8 @@ contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownab
     /// @notice Platform fee
     uint256 public platformFee;
 
-    /// @notice Platform fee receipient
-    address payable public feeReceipient;
+    /// @notice Platform fee Recipient
+    address payable public feeRecipient;
 
     /// @notice NftAddress -> Royalty
     mapping(address => CollectionRoyalty) public collectionRoyalties;
@@ -254,7 +254,7 @@ contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownab
         );
 
         platformFee = _platformFee;
-        feeReceipient = _feeRecipient;
+        feeRecipient = _feeRecipient;
 
         __Pausable_init();
         __Ownable_init();
@@ -405,12 +405,12 @@ contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownab
 		
 	if (_payToken == address(0)) {
 		require(msg.value == price, "insufficient or incorrect value to buy");		
-		(bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+		(bool feeTransferSuccess, ) = feeRecipient.call{value: feeAmount}("");
 		require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
 	} else {
 		IERC20(_payToken).safeTransferFrom(
 				msg.sender,
-				feeReceipient,
+				feeRecipient,
 				feeAmount
 			);
 	}
@@ -578,7 +578,7 @@ contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownab
         uint256 feeAmount = (price * platformFee) / 1e3;
         uint256 royaltyFee;
 
-        offer.payToken.safeTransferFrom(_creator, feeReceipient, feeAmount);
+        offer.payToken.safeTransferFrom(_creator, feeRecipient, feeAmount);
 
         address minter = minters[_nftAddress][_tokenId];
         uint16 royalty = royalties[_nftAddress][_tokenId];
@@ -748,7 +748,7 @@ contract VolcanoMarketplaceUpgraded is Initializable, PausableUpgradeable, Ownab
         external
         onlyOwner
     {
-        feeReceipient = _platformFeeRecipient;
+        feeRecipient = _platformFeeRecipient;
         emit UpdatePlatformFeeRecipient(_platformFeeRecipient);
     }
 

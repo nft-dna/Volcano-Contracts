@@ -116,7 +116,7 @@ contract VolcanoERC1155Factory is Ownable {
         string memory _symbol, 
         bool _private, 
         uint256 _mintFee,       
-        uint256 _creatorFeePerc,
+        uint96 _creatorFeePerc,
         address payable _feeRecipient,
         VolcanoERC1155Tradable.contractERC1155Options memory _options)
         external

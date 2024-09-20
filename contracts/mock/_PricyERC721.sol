@@ -34,13 +34,13 @@ contract VolcanoERC721 is ERC721("VolcanoCom", "PRY"), ERC721Enumerable, ERC721U
     /// @notice Platform fee
     uint256 public platformFee;
 
-    /// @notice Platform fee receipient
-    address payable public feeReceipient;
+    /// @notice Platform fee Recipient
+    address payable public feeRecipient;
 
     /// @notice Contract constructor
     constructor(address payable _feeRecipient, uint256 _platformFee) {
         platformFee = _platformFee;
-        feeReceipient = _feeRecipient;
+        feeRecipient = _feeRecipient;
     }
 
     function tokenURI(uint256 tokenId)
@@ -89,7 +89,7 @@ contract VolcanoERC721 is ERC721("VolcanoCom", "PRY"), ERC721Enumerable, ERC721U
         _setTokenURI(tokenId, _tokenUri);
         
         // Send FTM fee to fee recipient
-        feeReceipient.transfer(msg.value);
+        feeRecipient.transfer(msg.value);
 
         // Associate garment designer
         creators[tokenId] = _msgSender();
@@ -159,7 +159,7 @@ contract VolcanoERC721 is ERC721("VolcanoCom", "PRY"), ERC721Enumerable, ERC721U
      @param _platformFeeRecipient payable address the address to sends the funds to
      */
     function updatePlatformFeeRecipient(address payable _platformFeeRecipient) external onlyOwner {
-        feeReceipient = _platformFeeRecipient;
+        feeRecipient = _platformFeeRecipient;
         emit UpdatePlatformFeeRecipient(_platformFeeRecipient);
     }
 

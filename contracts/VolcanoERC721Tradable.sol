@@ -4,15 +4,16 @@ pragma solidity ^0.8.21;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 //import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 //import "@openzeppelin/contracts/utils/Strings.sol";
 import "./VolcanoMarketplace.sol";
 import "./VolcanoERC721Factory.sol";
 
-contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pausable*/, Ownable, ERC721Burnable {
+contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, Pausable*/, Ownable, ERC721Burnable, ERC2981 {
 
     using Counters for Counters.Counter;
     using Strings for uint256;    
@@ -30,12 +31,14 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     bool public isprivate;
     //bool usebaseuri;    
     string public baseUri;  
-    string public baseUriExt;       
+    string public baseUriExt;    
+    // Opensea json metadata format interface
+    string public contractURI;         
 
     uint256 public mintCreatorFee;
     //uint256 public mintPlatformFee;
-    uint256 public creatorFeePerc;
-    address payable public feeReceipient;
+    uint96 public creatorFeePerc;
+    address payable public feeRecipient;
 
     uint256 public maxSupply;
     uint256 public mintStartTime;        
@@ -49,7 +52,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         address minter
     );
     event UpdateCreatorFee(
-        uint256 creatorFeePerc
+        uint96 creatorFeePerc
     );
     event UpdateFeeRecipient(
         address payable feeRecipient
@@ -72,14 +75,15 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
 		address _factory,
         uint256 _mintCreatorFee,
         //uint256 _mintPlatformFee,           
-        uint256 _creatorFeePerc,
-        address payable _feeReceipient,
+        uint96 _creatorFeePerc,
+        address payable _feeRecipient,
         bool _isprivate,
         contractERC721Options memory _options
     )  ERC721(_name, _symbol) {
         require(_options.mintStopTime == 0 || block.timestamp < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStopTime == 0 || _options.mintStartTime < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStartTime == 0 || block.timestamp < _options.mintStartTime, "err mintStartTime");
+        require(_creatorFeePerc <= 10000, "invalid royalty");
         auction = _auction;
         marketplace = _marketplace;
         bundleMarketplace = _bundleMarketplace;
@@ -87,7 +91,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         mintCreatorFee = (_isprivate ? 0 : _mintCreatorFee);
         creatorFeePerc = _creatorFeePerc;
         //mintPlatformFee = _mintPlatformFee;
-        feeReceipient = _feeReceipient;
+        feeRecipient = _feeRecipient;
         isprivate = _isprivate;
         //usebaseuri = _usebaseuri;
         //if (_usebaseuri) {
@@ -98,6 +102,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         maxSupply = _options.maxItems;
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;        
+        _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
     /*
@@ -121,24 +126,27 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     /**
      @notice Method for updating platform fee
      @dev Only admin
-     @param _creatorFeePerc uint256 the platform fee to set
+     @param _creatorFeePerc uint96 the platform fee to set
      */
-    function updateCreatorFeePerc(uint256 _creatorFeePerc) external onlyOwner {
+    function updateCreatorFeePerc(uint96 _creatorFeePerc) external onlyOwner {
+        require(_creatorFeePerc <= 10000, "invalid royalty");
         creatorFeePerc = _creatorFeePerc;
         emit UpdateCreatorFee(_creatorFeePerc);
+        _setDefaultRoyalty(feeRecipient, creatorFeePerc);
     }
 
     /**
      @notice Method for updating platform fee address
      @dev Only admin
-     @param _feeReceipient payable address the address to sends the funds to
+     @param _feeRecipient payable address the address to sends the funds to
      */
-    function updateFeeRecipient(address payable _feeReceipient)
+    function updateFeeRecipient(address payable _feeRecipient)
         external
         onlyOwner
     {
-        feeReceipient = _feeReceipient;
-        emit UpdateFeeRecipient(_feeReceipient);
+        feeRecipient = _feeRecipient;
+        _setDefaultRoyalty(feeRecipient, creatorFeePerc);        
+        emit UpdateFeeRecipient(_feeRecipient);
     }    
 
     function mint(address to, string memory uri) 
@@ -149,13 +157,13 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
        require(block.timestamp >= mintStartTime, "not started");
        require(mintStopTime == 0 || block.timestamp < mintStopTime, "ended");
 
-		uint256 mintPlatformFee = 0;
-		if (factory != address(0)) {
-		   VolcanoERC721Factory vfactory = VolcanoERC721Factory(payable(factory));
-		   mintPlatformFee = vfactory.platformMintFee();
-		}
-		require(msg.value == (mintCreatorFee + mintPlatformFee), "Insufficient funds to mint.");
-		
+        uint256 mintPlatformFee = 0;
+        if (factory != address(0)) {
+            VolcanoERC721Factory vfactory = VolcanoERC721Factory(payable(factory));
+            mintPlatformFee = vfactory.platformMintFee();
+        }
+        require(msg.value == (mintCreatorFee + mintPlatformFee), "Insufficient funds to mint.");       
+
         if (isprivate)
             require(msg.sender == owner(), "Only owner can mint");
 
@@ -164,15 +172,14 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         uint256 tokenId = _internal_mint(to, uri);
 
         if (mintCreatorFee > 0) {
-            (bool success,) = feeReceipient.call{ value : mintCreatorFee }("");
+            (bool success,) = feeRecipient.call{ value : mintCreatorFee }("");
             require(success, "Transfer failed");
         }
 
         if (mintPlatformFee > 0) {
-			//VolcanoMarketplace vmarketplaced = VolcanoMarketplace(payable(marketplace));
-			VolcanoERC721Factory vfactory = VolcanoERC721Factory(payable(factory));
-            address payable feeRecipient = /*vmarketplaced*/vfactory.feeRecipient();
-            (bool success,) = feeRecipient.call{ value : mintPlatformFee }("");
+            VolcanoERC721Factory vfactory = VolcanoERC721Factory(payable(factory));
+            address payable ffeeRecipient = /*vmarketplaced*/vfactory.feeRecipient();
+            (bool success,) = ffeeRecipient.call{ value : mintPlatformFee }("");
             require(success, "Transfer failed");
         }
 
@@ -202,7 +209,11 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         }
         require(value == 0, "Strings: hex length insufficient");
         return string(buffer);
-    }
+    }    
+
+    function updateContractURI(string memory _uri) public onlyOwner {
+        contractURI = _uri;
+    }       
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
         internal
@@ -234,7 +245,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable, ERC721URIStorage)
+        override(ERC721, ERC721Enumerable, ERC721URIStorage, ERC2981)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

@@ -159,7 +159,7 @@ contract VolcanoAuction is Initializable, PausableUpgradeable, OwnableUpgradeabl
     /// @notice global bid withdrawal lock time
     uint256 public bidWithdrawalLockTime;// = 20 minutes;
 
-    /// @notice global platform fee, assumed to always be to 1 decimal place i.e. 25 = 2.5%
+    /// @notice global platform fee, assumed to always be to 3 decimal place i.e. 25 = 0.025%
     uint256 public platformFee;// = 25;
 
     /// @notice where to send platform fee funds to
@@ -487,7 +487,7 @@ contract VolcanoAuction is Initializable, PausableUpgradeable, OwnableUpgradeabl
             uint256 aboveReservePrice = winningBid - auction.reservePrice;
 
             // Work out platform fee from above reserve amount
-            uint256 platformFeeAboveReserve = (aboveReservePrice* platformFee)/1000;
+            uint256 platformFeeAboveReserve = (aboveReservePrice* platformFee)/10000;
 
             if (auction.payToken == address(0)) {
                 // Send platform fee

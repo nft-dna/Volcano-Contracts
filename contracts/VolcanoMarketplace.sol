@@ -163,11 +163,11 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
     mapping(address => mapping(uint256 => mapping(address => Offer)))
         public offers;
 
-    /// @notice Platform fee
+    /// @notice global platform fee, assumed to always be to 3 decimal place i.e. 25 = 0.025%
     uint256 public platformFee;
 
-    /// @notice Platform fee receipient
-    address payable public feeReceipient;
+    /// @notice Platform fee Recipient
+    address payable public feeRecipient;
 
     /// @notice NftAddress -> Royalty
     mapping(address => CollectionRoyalty) public collectionRoyalties;
@@ -254,7 +254,7 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         );
 
         platformFee = _platformFee;
-        feeReceipient = _feeRecipient;
+        feeRecipient = _feeRecipient;
 
         __Pausable_init();
         __Ownable_init();
@@ -401,16 +401,16 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
 	require(listedItem.payToken == _payToken, "invalid pay token");
 
         uint256 price = listedItem.pricePerItem * listedItem.quantity;
-        uint256 feeAmount = (price * platformFee) / 1e3;
+        uint256 feeAmount = (price * platformFee) / 10000;
 		
 	if (_payToken == address(0)) {
 		require(msg.value == price, "insufficient or incorrect value to buy");		
-		(bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+		(bool feeTransferSuccess, ) = feeRecipient.call{value: feeAmount}("");
 		require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
 	} else {
 		IERC20(_payToken).safeTransferFrom(
 				msg.sender,
-				feeReceipient,
+				feeRecipient,
 				feeAmount
 			);
 	}
@@ -590,13 +590,13 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         _validOwner(_nftAddress, _tokenId, msg.sender, offer.quantity);
 
         uint256 price = offer.pricePerItem * offer.quantity;
-        uint256 feeAmount = (price * platformFee) / 1e3;
+        uint256 feeAmount = (price * platformFee) / 10000;
         uint256 royaltyFee;
 
         if (address(offer.payToken) == address(0)) {
-            payable(feeReceipient).transfer(feeAmount);
+            payable(feeRecipient).transfer(feeAmount);
         } else {
-            offer.payToken.safeTransferFrom(_creator, feeReceipient, feeAmount);
+            offer.payToken.safeTransferFrom(_creator, feeRecipient, feeAmount);
         }
 
         address minter = minters[_nftAddress][_tokenId];
@@ -779,7 +779,7 @@ contract VolcanoMarketplace is Initializable, PausableUpgradeable, OwnableUpgrad
         external
         onlyOwner
     {
-        feeReceipient = _platformFeeRecipient;
+        feeRecipient = _platformFeeRecipient;
         emit UpdatePlatformFeeRecipient(_platformFeeRecipient);
     }
 

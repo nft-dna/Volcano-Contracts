@@ -25,7 +25,7 @@ VolcanoERC721Tradable
         uint256 _mintCreatorFee,
         //uint256 _mintPlatformFee,           
         uint256 _creatorFee,
-        address payable _feeReceipient,
+        address payable _feeRecipient,
         bool _isprivate,
         contractERC721Options memory _options
 */

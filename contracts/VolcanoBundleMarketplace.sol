@@ -116,11 +116,11 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
     /// @notice Bundle ID -> Offerer -> Offer
     mapping(bytes32 => mapping(address => Offer)) public offers;
 
-    /// @notice Platform fee
+    /// @notice global platform fee, assumed to always be to 3 decimal place i.e. 25 = 0.025%
     uint256 public platformFee;
 
-    /// @notice Platform fee receipient
-    address payable public feeReceipient;
+    /// @notice Platform fee Recipient
+    address payable public feeRecipient;
 
     /// @notice Address registry
     IVolcanoAddressRegistry public addressRegistry;
@@ -146,7 +146,7 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
         );
 
         platformFee = _platformFee;
-        feeReceipient = _feeRecipient;
+        feeRecipient = _feeRecipient;
 
         __Pausable_init();
         __Ownable_init();
@@ -376,10 +376,10 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
         require(_getNow() >= listing.startingTime, "not buyable");
 
         uint256 price = listing.price;
-        uint256 feeAmount = (price * platformFee)/1e3;
+        uint256 feeAmount = (price * platformFee)/10000;
         if (_payToken == address(0)) {
             require(msg.value == price , "insufficient or incorrect value to buy");
-            (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+            (bool feeTransferSuccess, ) = feeRecipient.call{value: feeAmount}("");
             require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
             (bool ownerTransferSuccess, ) = owner.call{ value: price - feeAmount }("");
             require(ownerTransferSuccess, "VolcanoMarketplace: Owner transfer failed");
@@ -387,7 +387,7 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
             SafeERC20.safeTransferFrom(
                 IERC20(_payToken),
                 msg.sender,
-                feeReceipient,
+                feeRecipient,
                 feeAmount
             );
             SafeERC20.safeTransferFrom(
@@ -493,17 +493,17 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
         require(offer.deadline > _getNow(), "offer not exists or expired");
 
         uint256 price = offer.price;
-        uint256 feeAmount = (price * platformFee)/1e3;
+        uint256 feeAmount = (price * platformFee)/10000;
 
         /*
         if (offer.payToken == address(0)) {
             require(msg.value == price , "insufficient or incorrect value to buy");
-            (bool feeTransferSuccess, ) = feeReceipient.call{value: feeAmount}("");
+            (bool feeTransferSuccess, ) = feeRecipient.call{value: feeAmount}("");
             require(feeTransferSuccess, "VolcanoMarketplace: Fee transfer failed");
             (bool payTransferSuccess, ) = msg.sender.call{ value: price - feeAmount }("");
             require(payTransferSuccess, "VolcanoMarketplace: Pay transfer failed");
         } else {*/
-            SafeERC20.safeTransferFrom(IERC20(offer.payToken), _creator, feeReceipient, feeAmount);
+            SafeERC20.safeTransferFrom(IERC20(offer.payToken), _creator, feeRecipient, feeAmount);
             SafeERC20.safeTransferFrom(
                 IERC20(offer.payToken), 
                 _creator,
@@ -573,7 +573,7 @@ contract VolcanoBundleMarketplace is Initializable, PausableUpgradeable, Ownable
         external
         onlyOwner
     {
-        feeReceipient = _platformFeeRecipient;
+        feeRecipient = _platformFeeRecipient;
         emit UpdatePlatformFeeRecipient(_platformFeeRecipient);
     }
 
