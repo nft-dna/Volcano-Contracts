@@ -35,9 +35,9 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     address factory;	
 
     bool public isprivate;   
-    bool public usebaseUriOnly;
-    string public baseUri;            
-    string public baseUriExt;     
+    bool private usebaseUriOnly;
+    string private baseUri;            
+    string private baseUriExt;     
     // Opensea json metadata format interface
     string public contractURI;            
 
@@ -49,7 +49,10 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     uint256 public maxSupply;
     uint256 public maxItemSupply;   
     uint256 public mintStartTime;        
-    uint256 public mintStopTime;       
+    uint256 public mintStopTime;   
+
+    uint256 public revealTime;
+    string private preRevealUri;        
 
     /// @dev Events of the contract
     event Minted(
@@ -75,6 +78,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         uint256 maxItemSupply;
         uint256 mintStartTime;
         uint256 mintStopTime;
+        uint256 revealTime;
+        string preRevealUri;        
     }
 
     constructor(
@@ -116,6 +121,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         maxItemSupply = _options.maxItemSupply;       
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;
+        revealTime = _options.revealTime;
+        preRevealUri = _options.preRevealUri;      
         _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
@@ -145,7 +152,10 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     ipfs://uri/00000000000000000000000000000000000000000000000000000000000000fa.json
     */
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return usebaseUriOnly ? baseUri : string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
+        if (block.timestamp >= revealTime) {
+            return usebaseUriOnly ? baseUri : string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
+        }
+        return preRevealUri;
     }
     
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";

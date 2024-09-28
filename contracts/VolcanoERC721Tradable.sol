@@ -30,8 +30,8 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
 
     bool public isprivate;
     //bool usebaseuri;    
-    string public baseUri;  
-    string public baseUriExt;    
+    string private baseUri;  
+    string private baseUriExt;    
     // Opensea json metadata format interface
     string public contractURI;         
 
@@ -43,6 +43,9 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     uint256 public maxSupply;
     uint256 public mintStartTime;        
     uint256 public mintStopTime;
+
+    uint256 public revealTime;
+    string private preRevealUri;
 
     /// @dev Events of the contract
     event Minted(
@@ -64,6 +67,8 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         uint256 maxItems;
         uint256 mintStartTime;
         uint256 mintStopTime;
+        uint256 revealTime;
+        string preRevealUri;
     }    
 
     constructor(
@@ -101,7 +106,9 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         baseUriExt = _options.baseUriExt;
         maxSupply = _options.maxItems;
         mintStartTime = _options.mintStartTime;
-        mintStopTime = _options.mintStopTime;        
+        mintStopTime = _options.mintStopTime;    
+        revealTime = _options.revealTime;
+        preRevealUri = _options.preRevealUri;                
         _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
@@ -239,7 +246,10 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        if (block.timestamp >= revealTime) {
+            return super.tokenURI(tokenId);
+        }
+        return preRevealUri;
     }
 
     function supportsInterface(bytes4 interfaceId)
