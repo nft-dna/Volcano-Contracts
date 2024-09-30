@@ -130,6 +130,10 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         return baseUri;
     }    
 
+    function useBaseUri() public view returns (bool) {
+        return (bytes(baseUri).length > 0);
+    }
+	
     /**
      @notice Method for updating platform fee
      @dev Only admin
