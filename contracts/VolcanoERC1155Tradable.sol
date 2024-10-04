@@ -32,7 +32,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     // Volcano Bundle Marketplace contract
     address bundleMarketplace;
     // Volcano ERC1155 Factory contract
-    address factory;	
+    address public factory;	
 
     bool public isprivate;   
     bool private usebaseUriOnly;

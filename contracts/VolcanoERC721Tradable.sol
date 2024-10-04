@@ -26,10 +26,11 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     // Volcano Bundle Marketplace contract
     address bundleMarketplace;
     // Volcano ERC721 Factory contract
-    address factory;		
+    address public factory;		
 
     bool public isprivate;
     //bool usebaseuri;    
+    bool private useDecimalUri;
     string private baseUri;  
     string private baseUriExt;    
     // Opensea json metadata format interface
@@ -63,6 +64,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
 
     struct contractERC721Options {
         string baseUri;
+        bool useDecimalUri;        
         string baseUriExt;
         uint256 maxItems;
         uint256 mintStartTime;
@@ -103,6 +105,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         //    _setBaseURI(_baseUri);
         //}
         baseUri = _options.baseUri;
+        useDecimalUri = _options.useDecimalUri;
         baseUriExt = _options.baseUriExt;
         maxSupply = _options.maxItems;
         mintStartTime = _options.mintStartTime;
@@ -130,10 +133,6 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         return baseUri;
     }    
 
-    function useBaseUri() public view returns (bool) {
-        return (bytes(baseUri).length > 0);
-    }
-	
     /**
      @notice Method for updating platform fee
      @dev Only admin
@@ -203,12 +202,20 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         uint256 tokenId = _tokenIdCounter.current();
 
         _safeMint(to, tokenId);
-         if (bytes(baseUri).length > 0) {                 
-            _setTokenURI(tokenId, string(bytes.concat("/", bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
+         if (bytes(baseUri).length > 0) { 
+            if (useDecimalUri) {
+                _setTokenURI(tokenId, string(bytes.concat("/", bytes(Strings.toString(tokenId)), bytes(baseUriExt))));
+            } else {                
+                _setTokenURI(tokenId, string(bytes.concat("/", bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
+            }
         } else {
             _setTokenURI(tokenId, uri);
         }    
         return tokenId;
+    }
+
+    function useBaseUri() public view returns (bool) {
+        return (bytes(baseUri).length > 0);
     }
 
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";

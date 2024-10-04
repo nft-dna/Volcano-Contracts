@@ -18,7 +18,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     uint256 public mintBlocksMaxSupply;
     // Opensea json metadata format interface
     string public contractURI;       
-    address factory;
+    address public factory;
     UniswapRouterInterface public routerAddress;    
 
     event BlockMinted(address receiver);
