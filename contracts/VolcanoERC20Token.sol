@@ -18,7 +18,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     uint256 public mintBlocksMaxSupply;
     // Opensea json metadata format interface
     string public contractURI;       
-    address factory;
+    address public factory;
     UniswapRouterInterface public routerAddress;    
 
     event BlockMinted(address receiver);
@@ -110,14 +110,14 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     function withdrawETH(uint256 amount) external {
         VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
         address payable feeRecipient = vfactory.feeRecipient();
-        require(msg.sender == feeRecipient, "Forbidden");        
+        //require(msg.sender == feeRecipient, "Forbidden");        
         feeRecipient.transfer(amount);
     }    
 
     function withdrawTokens(uint256 amount) external {
         VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
         address payable feeRecipient = vfactory.feeRecipient();
-        require(msg.sender == feeRecipient, "Forbidden");        
+        //require(msg.sender == feeRecipient, "Forbidden");        
         transferFrom(address(this), feeRecipient, amount);
     }      
 }

@@ -26,12 +26,13 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     // Volcano Bundle Marketplace contract
     address bundleMarketplace;
     // Volcano ERC721 Factory contract
-    address factory;		
+    address public factory;		
 
     bool public isprivate;
     //bool usebaseuri;    
-    string public baseUri;  
-    string public baseUriExt;    
+    bool private useDecimalUri;
+    string private baseUri;  
+    string private baseUriExt;    
     // Opensea json metadata format interface
     string public contractURI;         
 
@@ -43,6 +44,9 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
     uint256 public maxSupply;
     uint256 public mintStartTime;        
     uint256 public mintStopTime;
+
+    uint256 public revealTime;
+    string private preRevealUri;
 
     /// @dev Events of the contract
     event Minted(
@@ -60,10 +64,13 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
 
     struct contractERC721Options {
         string baseUri;
+        bool useDecimalUri;        
         string baseUriExt;
         uint256 maxItems;
         uint256 mintStartTime;
         uint256 mintStopTime;
+        uint256 revealTime;
+        string preRevealUri;
     }    
 
     constructor(
@@ -98,10 +105,13 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         //    _setBaseURI(_baseUri);
         //}
         baseUri = _options.baseUri;
+        useDecimalUri = _options.useDecimalUri;
         baseUriExt = _options.baseUriExt;
         maxSupply = _options.maxItems;
         mintStartTime = _options.mintStartTime;
-        mintStopTime = _options.mintStopTime;        
+        mintStopTime = _options.mintStopTime;    
+        revealTime = _options.revealTime;
+        preRevealUri = _options.preRevealUri;                
         _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
@@ -192,12 +202,20 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         uint256 tokenId = _tokenIdCounter.current();
 
         _safeMint(to, tokenId);
-         if (bytes(baseUri).length > 0) {                 
-            _setTokenURI(tokenId, string(bytes.concat("/", bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
+         if (bytes(baseUri).length > 0) { 
+            if (useDecimalUri) {
+                _setTokenURI(tokenId, string(bytes.concat("/", bytes(Strings.toString(tokenId)), bytes(baseUriExt))));
+            } else {                
+                _setTokenURI(tokenId, string(bytes.concat("/", bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
+            }
         } else {
             _setTokenURI(tokenId, uri);
         }    
         return tokenId;
+    }
+
+    function useBaseUri() public view returns (bool) {
+        return (bytes(baseUri).length > 0);
     }
 
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
@@ -239,7 +257,10 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        if (block.timestamp >= revealTime) {
+            return super.tokenURI(tokenId);
+        }
+        return preRevealUri;
     }
 
     function supportsInterface(bytes4 interfaceId)
