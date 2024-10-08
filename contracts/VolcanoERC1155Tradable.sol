@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-//import "@openzeppelin/contracts/utils/Strings.sol"; 
+import "@openzeppelin/contracts/utils/Strings.sol"; 
 import "./VolcanoMarketplace.sol";
 import "./VolcanoERC1155Factory.sol";
 
@@ -18,6 +18,7 @@ import "./VolcanoERC1155Factory.sol";
 contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnable, ERC1155Supply, ERC2981  {
     
     using Counters for Counters.Counter;
+    using Strings for uint256;        
     Counters.Counter private _tokenIdCounter;
 
     // Contract name
@@ -35,6 +36,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     address public factory;	
 
     bool public isprivate;   
+    bool private useDecimalUri;    
     bool private usebaseUriOnly;
     string private baseUri;            
     string private baseUriExt;     
@@ -73,6 +75,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     struct contractERC1155Options {
         string baseUri;
         bool usebaseUriOnly;
+        bool useDecimalUri;        
         string baseUriExt;        
         uint256 maxItems;
         uint256 maxItemSupply;
@@ -95,7 +98,7 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         address payable _feeRecipient,
         bool _isprivate,
         contractERC1155Options memory _options
-    ) ERC1155(_options.usebaseUriOnly ? _options.baseUri : string(bytes.concat(bytes(_options.baseUri), "/{id}", bytes(_options.baseUriExt)))) {
+    ) ERC1155(_options.usebaseUriOnly ? _options.baseUri : string(bytes.concat(bytes(_options.baseUri), "{id}", bytes(_options.baseUriExt)))) {
         require(_options.mintStopTime == 0 || block.timestamp < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStopTime == 0 || _options.mintStartTime < _options.mintStopTime, "err mintStopTime");
         require(_options.mintStartTime == 0 || block.timestamp < _options.mintStartTime, "err mintStartTime");       
@@ -115,7 +118,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         //if (_usebaseuri) {
         //    _setBaseURI(_baseUri);
         //}        
-        baseUri = _options.baseUri;          
+        baseUri = _options.baseUri;
+        useDecimalUri = _options.useDecimalUri;
         baseUriExt = _options.baseUriExt;        
         maxSupply = _options.maxItems;     
         maxItemSupply = _options.maxItemSupply;       
@@ -153,7 +157,13 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
     */
     function uri(uint256 tokenId) public view override returns (string memory) {
         if (block.timestamp >= revealTime) {
-            return usebaseUriOnly ? baseUri : string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
+            if (usebaseUriOnly) {
+                return baseUri;
+            } else if (useDecimalUri) {
+                return string(bytes.concat(bytes(baseUri), bytes(Strings.toString(tokenId)), bytes(baseUriExt)));
+            } else {   
+                return string(bytes.concat(bytes(baseUri), bytes(toHexString(tokenId, 64)), bytes(baseUriExt)));
+            }
         }
         return preRevealUri;
     }
@@ -244,7 +254,9 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
        emit Minted(id, amount, account, uri(id), data, msg.sender);
     }
  
-
+    function itemsSupply() public view returns (uint256) {
+        return _tokenIdCounter.current();
+    }
     /*
     function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
         public

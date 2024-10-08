@@ -204,9 +204,9 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         _safeMint(to, tokenId);
          if (bytes(baseUri).length > 0) { 
             if (useDecimalUri) {
-                _setTokenURI(tokenId, string(bytes.concat("/", bytes(Strings.toString(tokenId)), bytes(baseUriExt))));
+                _setTokenURI(tokenId, string(bytes.concat(bytes(Strings.toString(tokenId)), bytes(baseUriExt))));
             } else {                
-                _setTokenURI(tokenId, string(bytes.concat("/", bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
+                _setTokenURI(tokenId, string(bytes.concat(bytes(toHexString(tokenId, 64)), bytes(baseUriExt))));
             }
         } else {
             _setTokenURI(tokenId, uri);
