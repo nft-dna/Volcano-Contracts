@@ -31,7 +31,7 @@ VolcanoERC721Tradable
 */
     /// @notice Contract constructor
     constructor(address payable _feeRecipient, uint256 _platformFee) 
-    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false, VolcanoERC721Tradable.contractERC721Options("", false, "", 1000, 0, 0, 0, "")) 
+    VolcanoERC721Tradable ("VolcanoCom", "PRY", address(0), address(0), address(0), address(0), _platformFee, 0, _feeRecipient, false, VolcanoERC721Tradable.contractERC721Options("", false, "", 1000, 0, 0, 0, "", "")) 
     {
     }
 
