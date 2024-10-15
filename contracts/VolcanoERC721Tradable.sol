@@ -71,6 +71,7 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         uint256 mintStopTime;
         uint256 revealTime;
         string preRevealUri;
+        string contractUri;
     }    
 
     constructor(
@@ -111,7 +112,8 @@ contract VolcanoERC721Tradable is ERC721, ERC721Enumerable, ERC721URIStorage/*, 
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;    
         revealTime = _options.revealTime;
-        preRevealUri = _options.preRevealUri;                
+        preRevealUri = _options.preRevealUri;
+        contractURI = _options.contractUri;
         _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 

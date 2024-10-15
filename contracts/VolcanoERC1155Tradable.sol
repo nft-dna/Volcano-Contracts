@@ -82,7 +82,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         uint256 mintStartTime;
         uint256 mintStopTime;
         uint256 revealTime;
-        string preRevealUri;        
+        string preRevealUri;
+        string contractUri;
     }
 
     constructor(
@@ -126,7 +127,8 @@ contract VolcanoERC1155Tradable is ERC1155/*, Pausable*/, Ownable, ERC1155Burnab
         mintStartTime = _options.mintStartTime;
         mintStopTime = _options.mintStopTime;
         revealTime = _options.revealTime;
-        preRevealUri = _options.preRevealUri;      
+        preRevealUri = _options.preRevealUri;
+        contractURI = _options.contractUri;      
         _setDefaultRoyalty(msg.sender, creatorFeePerc);
     }
 
