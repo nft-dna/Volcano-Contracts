@@ -2,7 +2,8 @@
 // Compatible with OpenZeppelin Contracts ^4.9.6
 pragma solidity ^0.8.21;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts@4.9.6/access/Ownable.sol";
+import "@openzeppelin/contracts@4.9.6/utils/math/Math.sol";
 import "./VolcanoERC20Token.sol";
 import "./UniswapInterface.sol";
 
@@ -18,12 +19,16 @@ contract VolcanoERC20Factory is Ownable {
     uint256 public platformContractFee; // 0.001 1000000000000000
     address payable public feeRecipient;
     address payable public routerAddress;  // Sepolia 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
+    //bool public routerAddressIsV3;
+    uint24 public routerAddressV3Fee;
 
     constructor(uint96 _erc20MintFeePerc,
                 uint96 _erc20MintTokenFeePerc,
                 address payable _feeRecipient,				
                 uint256 _platformContractFee,
-                address payable _routerAddress)
+                address payable _routerAddress,
+                //bool _routerAddressIsV3,
+                uint24 _routerAddressV3Fee)
         //Ownable(msg.sender)
     {
         erc20MintFeePerc = _erc20MintFeePerc;
@@ -31,6 +36,8 @@ contract VolcanoERC20Factory is Ownable {
         platformContractFee = _platformContractFee;
         feeRecipient = _feeRecipient;       
         routerAddress = _routerAddress;
+        //routerAddressIsV3 = _routerAddressIsV3;
+        routerAddressV3Fee = _routerAddressV3Fee;
     }
 
     function updatePlatformContractFee(uint256 _platformContractFee) external onlyOwner {
@@ -49,8 +56,10 @@ contract VolcanoERC20Factory is Ownable {
         feeRecipient = _feeRecipient;
     }    
 
-    function updateRouterAddress(address payable _routerAddress) external onlyOwner {
+    function updateRouterAddress(address payable _routerAddress/*, bool _isV3*/, uint24 _fee) external onlyOwner {
         routerAddress = _routerAddress;
+        //routerAddressIsV3 = _isV3;
+        routerAddressV3Fee = _fee;
     }    
 
     function createTokenContract(
@@ -82,10 +91,24 @@ contract VolcanoERC20Factory is Ownable {
                 _mintBlocks, 
                 _mintBlocksFee,
                 address(this),
-                routerAddress
+                routerAddress,
+                //routerAddressIsV3,
+                routerAddressV3Fee
         );
-        address factory = UniswapRouterInterface(routerAddress).factory();
-        UniswapFactoryInterface(factory).createPair(address(erc20), UniswapRouterInterface(routerAddress).WETH());
+        
+        //if (routerAddressIsV3) {
+        if (routerAddressV3Fee > 0) {
+            address positionManager = UniswapRouterInterface(routerAddress).positionManager();
+            uint256 Q96 = 2 ** 96;
+            uint256 scaledWethAmount = _mintBlocksFee * Q96 ** 2;
+            uint256 blockTokenAmount = _capAmount / (_mintBlocks * 2);
+            uint256 priceRatio = scaledWethAmount / blockTokenAmount;            
+            uint160 sqrtPriceX96 = uint160(Math.sqrt(priceRatio));
+            UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(address(erc20), UniswapRouterInterface(routerAddress).WETH9(), routerAddressV3Fee, sqrtPriceX96);
+        } else {
+            address factory = UniswapRouterInterface(routerAddress).factory();
+            UniswapFactoryInterface(factory).createPair(address(erc20), UniswapRouterInterface(routerAddress).WETH());            
+        }
 
         exists[address(erc20)] = true;
         erc20.transferOwnership(_msgSender());
