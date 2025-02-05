@@ -2,11 +2,11 @@
 // Compatible with OpenZeppelin Contracts ^4.9.6
 pragma solidity ^0.8.21;
 
-import "@openzeppelin/contracts@4.9.6/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts@4.9.6/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts@4.9.6/access/Ownable.sol";
-import "@openzeppelin/contracts@4.9.6/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts@4.9.6/token/ERC20/extensions/ERC20Capped.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "./VolcanoERC20Factory.sol";
 import "./UniswapInterface.sol";
 
@@ -118,9 +118,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(address(routerAddress)).mint(params); 
 
             if (amount1 < amountETH) {
-                //_approve(_weth9Address, address(routerAddress), 0);
-                uint256 refund1 = amountETH - amount1;
-                //transferFrom(_weth9Address, to, refund1);
+                uint256 refund1 = amountETH - amount1;     
                 //IUniswapV3Router
                 UniswapRouterInterface.ExactInputSingleParams memory swparams;
                 swparams.tokenIn = _weth9Address;
@@ -130,8 +128,12 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 //swparams.deadline = block.timestamp + 30;
                 swparams.amountIn = refund1;
                 swparams.amountOutMinimum = 0;
-                swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;
-                UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams);
+                swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;                           
+                try UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams) {                   
+                } catch {
+                    _approve(_weth9Address, address(routerAddress), 0);
+                    transferFrom(_weth9Address, to, refund1);
+                }
             }   
 
             if (amount0 < amountToken) {
@@ -149,11 +151,13 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             
             if (amount1 < amountETH) {
                 uint256 refund1 = amountETH - amount1;
-                //payable(to).transfer(refund1);
                 address[] memory path;
                 path = new address[](1);
-                path[0] = address(this);             
-                UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30);
+                path[0] = address(this);                   
+                try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30) {                
+                } catch {
+                    payable(to).transfer(refund1);
+                }                
             }    
 
             if (amount0 < amountToken) {

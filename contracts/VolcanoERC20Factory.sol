@@ -2,8 +2,8 @@
 // Compatible with OpenZeppelin Contracts ^4.9.6
 pragma solidity ^0.8.21;
 
-import "@openzeppelin/contracts@4.9.6/access/Ownable.sol";
-import "@openzeppelin/contracts@4.9.6/utils/math/Math.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./VolcanoERC20Token.sol";
 import "./UniswapInterface.sol";
 
