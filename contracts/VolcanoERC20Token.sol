@@ -91,13 +91,11 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     function _addLiquidityETH(
         uint amountToken,
         uint amountETH,
-        address to) internal {
-        _approve(address(this), address(routerAddress), amountToken);              
+        address to) internal {           
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
             address payable _weth9Address = payable(UniswapRouterInterface(routerAddress).WETH9());
             UniswapWETH9Interface(_weth9Address).deposit{ value : amountETH }();
-            _approve(_weth9Address, address(routerAddress), amountETH); 
             UniswapPositionManagerInterface.MintParams memory params = UniswapPositionManagerInterface.MintParams({
                 token0: address(this),
                 token1: _weth9Address,
@@ -115,7 +113,10 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             uint128 liquidity;
             uint256 amount0;
             uint256 amount1;            
-            (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(address(routerAddress)).mint(params); 
+            address positionManager = UniswapRouterInterface(routerAddress).positionManager();
+            _approve(address(this), positionManager, amountToken);  
+            _approve(_weth9Address, positionManager, amountETH);             
+            (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(positionManager).mint(params); 
 
             if (amount1 < amountETH) {
                 uint256 refund1 = amountETH - amount1;     
@@ -137,7 +138,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             }   
 
             if (amount0 < amountToken) {
-                _approve(address(this), address(routerAddress), 0);
+                _approve(address(this), address(positionManager), 0);
                 uint256 refund0 = amountToken - amount0;
                 transferFrom(address(this), to, refund0);
             }
@@ -146,7 +147,9 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         else {          
             uint liquidity;
             uint amount0;
-            uint amount1;              
+            uint amount1;   
+            _approve(address(this), address(routerAddress), amountToken);  
+
             (amount0, amount1, liquidity) = routerAddress.addLiquidityETH{ value : amountETH }(address(this), amountToken, 0, 0, to, block.timestamp + 30);
             
             if (amount1 < amountETH) {
