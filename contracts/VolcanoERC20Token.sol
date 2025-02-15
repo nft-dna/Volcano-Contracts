@@ -115,7 +115,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             uint256 amount1;            
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
             _approve(address(this), positionManager, amountToken);  
-            _approve(_weth9Address, positionManager, amountETH);             
+            ERC20(_weth9Address).approve(positionManager, amountETH);             
             (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(positionManager).mint(params); 
 
             if (amount1 < amountETH) {
@@ -132,7 +132,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;                           
                 try UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams) {                   
                 } catch {
-                    _approve(_weth9Address, address(routerAddress), 0);
+                    ERC20(_weth9Address).approve(address(routerAddress), 0);
                     transferFrom(_weth9Address, to, refund1);
                 }
             }   
@@ -169,7 +169,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 transferFrom(address(this), to, refund0);
             }        
         }
-    }        
+    }             
 
     function updateContractURI(string memory _uri) public onlyOwner {
         contractURI = _uri;
