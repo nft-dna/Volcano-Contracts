@@ -160,7 +160,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     swparams.amountIn = refund1;
                     swparams.amountOutMinimum = 1;
                     swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;     
-                    ERC20(_weth9Address).approve(address(routerAddress), 0);                      
+                    ERC20(_weth9Address).approve(address(routerAddress), refund1);                      
                     try UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams) {                   
                     } catch {
                         ERC20(_weth9Address).approve(positionManager, 0);
