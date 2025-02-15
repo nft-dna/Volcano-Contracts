@@ -62,7 +62,36 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         super._mint(to, amount);
     }
     
-    function mintBlock(address to) public payable {
+    function getTickSpacing(uint24 feeTier) internal pure returns (int24) {
+        if (feeTier == 100) return 1;      // 0.01% fee tier
+        if (feeTier == 500) return 10;     // 0.05% fee tier
+        if (feeTier == 3000) return 60;    // 0.3% fee tier
+        if (feeTier == 10000) return 200;  // 1% fee tier
+        revert("Invalid fee tier");
+    }
+
+    function getMinUsableTick(uint24 feeTier) internal pure returns (int24) {
+        int24 tickSpacing = getTickSpacing(feeTier);
+        
+        // Round MIN_TICK up to the nearest multiple of tickSpacing
+        int24 minUsable = (MIN_TICK / tickSpacing) * tickSpacing;
+        if (MIN_TICK % tickSpacing != 0) {
+            minUsable += tickSpacing; // Ensure it's a valid tick
+        }
+
+        return minUsable;
+    }
+
+    function getMaxUsableTick(uint24 feeTier) internal pure returns (int24) {
+        int24 tickSpacing = getTickSpacing(feeTier);
+
+        // Round MAX_TICK down to the nearest multiple of tickSpacing
+        int24 maxUsable = (MAX_TICK / tickSpacing) * tickSpacing;
+
+        return maxUsable;
+    }      
+
+    function mintBlock(address to, bool refund) public payable {
         require(totalSupply() + (2*mintBlocksAmount) <= cap(), "capped");        
         require(msg.value == mintBlocksFee, "wrong fee");
         
@@ -77,7 +106,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         }
         _mint(address(this), mintBlocksAmount - tokenFeeAmount);
         uint256 feeAmount = (mintBlocksFee * vfactory.erc20MintFeePerc()) / 10000;
-        _addLiquidityETH(mintBlocksAmount - tokenFeeAmount, mintBlocksFee - feeAmount, to);
+        _addLiquidityETH(mintBlocksAmount - tokenFeeAmount, mintBlocksFee - feeAmount, to, refund);
 
         if (feeAmount > 0) {
             (bool success,) = feeRecipient.call{ value : feeAmount }("");
@@ -91,7 +120,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     function _addLiquidityETH(
         uint amountToken,
         uint amountETH,
-        address to) internal {           
+        address to, bool refund) internal {           
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
             address payable _weth9Address = payable(UniswapRouterInterface(routerAddress).WETH9());
@@ -100,12 +129,12 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 token0: address(this),
                 token1: _weth9Address,
                 fee: routerAddressV3Fee,
-                tickLower: MIN_TICK,
-                tickUpper: MAX_TICK,
+                tickLower: getMinUsableTick(routerAddressV3Fee),
+                tickUpper: getMaxUsableTick(routerAddressV3Fee),
                 amount0Desired: amountToken,
                 amount1Desired: amountETH,
-                amount0Min: 0,
-                amount1Min: 0,
+                amount0Min: 1,
+                amount1Min: 1,
                 recipient: to,
                 deadline: block.timestamp + 30
             }); 
@@ -114,33 +143,38 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             uint256 amount0;
             uint256 amount1;            
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
-            _approve(address(this), positionManager, amountToken);  
+            ERC20(address(this)).approve(positionManager, amountToken);  
             ERC20(_weth9Address).approve(positionManager, amountETH);             
             (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(positionManager).mint(params); 
 
-            if (amount1 < amountETH) {
-                uint256 refund1 = amountETH - amount1;     
-                //IUniswapV3Router
-                UniswapRouterInterface.ExactInputSingleParams memory swparams;
-                swparams.tokenIn = _weth9Address;
-                swparams.tokenOut = address(this);
-                swparams.fee = routerAddressV3Fee;
-                swparams.recipient = to;
-                //swparams.deadline = block.timestamp + 30;
-                swparams.amountIn = refund1;
-                swparams.amountOutMinimum = 0;
-                swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;                           
-                try UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams) {                   
-                } catch {
-                    ERC20(_weth9Address).approve(address(routerAddress), 0);
-                    transferFrom(_weth9Address, to, refund1);
-                }
-            }   
+            if (refund) {            
+                if (amount1 < amountETH) {
+                    uint256 refund1 = amountETH - amount1;     
+                    //IUniswapV3Router
+                    UniswapRouterInterface.ExactInputSingleParams memory swparams;
+                    swparams.tokenIn = _weth9Address;
+                    swparams.tokenOut = address(this);
+                    swparams.fee = routerAddressV3Fee;
+                    swparams.recipient = to;
+                    //swparams.deadline = block.timestamp + 30;
+                    swparams.amountIn = refund1;
+                    swparams.amountOutMinimum = 1;
+                    swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;     
+                    ERC20(_weth9Address).approve(address(routerAddress), 0);                      
+                    try UniswapRouterInterface(address(routerAddress)).exactInputSingle(swparams) {                   
+                    } catch {
+                        ERC20(_weth9Address).approve(positionManager, 0);
+                        //ERC20(_weth9Address).transfer(to, refund1);
+                        UniswapWETH9Interface(_weth9Address).withdraw(refund1);
+                        payable(to).transfer(refund1);
+                    }
+                }   
 
-            if (amount0 < amountToken) {
-                _approve(address(this), address(positionManager), 0);
-                uint256 refund0 = amountToken - amount0;
-                transferFrom(address(this), to, refund0);
+                if (amount0 < amountToken) {
+                    ERC20(address(this)).approve(positionManager, 0);
+                    uint256 refund0 = amountToken - amount0;
+                    ERC20(address(this)).transfer(to, refund0);
+                }
             }
            
         }
@@ -152,24 +186,26 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
 
             (amount0, amount1, liquidity) = routerAddress.addLiquidityETH{ value : amountETH }(address(this), amountToken, 0, 0, to, block.timestamp + 30);
             
-            if (amount1 < amountETH) {
-                uint256 refund1 = amountETH - amount1;
-                address[] memory path;
-                path = new address[](1);
-                path[0] = address(this);                   
-                try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30) {                
-                } catch {
-                    payable(to).transfer(refund1);
-                }                
-            }    
+            if (refund) { 
+                if (amount1 < amountETH) {
+                    uint256 refund1 = amountETH - amount1;
+                    address[] memory path;
+                    path = new address[](1);
+                    path[0] = address(this);                   
+                    try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30) {                
+                    } catch {
+                        payable(to).transfer(refund1);
+                    }                
+                }    
 
-            if (amount0 < amountToken) {
-                _approve(address(this), address(routerAddress), 0);
-                uint256 refund0 = amountToken - amount0;
-                transferFrom(address(this), to, refund0);
-            }        
+                if (amount0 < amountToken) {
+                    ERC20(address(this)).approve(address(routerAddress), 0);
+                    uint256 refund0 = amountToken - amount0;
+                    ERC20(address(this)).transfer(to, refund0);
+                }   
+            }     
         }
-    }             
+    }        
 
     function updateContractURI(string memory _uri) public onlyOwner {
         contractURI = _uri;

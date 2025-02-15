@@ -96,29 +96,37 @@ contract VolcanoERC20Factory is Ownable {
                 routerAddressV3Fee
         );
         
+        bool poolcreated = true;           
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
-            uint256 Q96 = 2 ** 96;
-            uint256 scaledWethAmount = _mintBlocksFee * Q96 ** 2;
-            uint256 blockTokenAmount = _capAmount / (_mintBlocks * 2);
-            uint256 priceRatio = scaledWethAmount / blockTokenAmount;            
-            uint160 sqrtPriceX96 = uint160(Math.sqrt(priceRatio));
-            UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(address(erc20), UniswapRouterInterface(routerAddress).WETH9(), routerAddressV3Fee, sqrtPriceX96);
+            uint256 blockTokenAmount = _capAmount / (_mintBlocks * 2);            
+            //uint256 Q96 = 2 ** 96;
+            //uint256 scaledWethAmount = _mintBlocksFee * Q96 ** 2;
+            //uint256 priceRatio = scaledWethAmount / blockTokenAmount;            
+            //uint160 sqrtPriceX96 = uint160(Math.sqrt(priceRatio));
+            uint256 desiredPrice = blockTokenAmount / _mintBlocksFee;
+            uint160 sqrtPriceX96 = uint160((desiredPrice * 2**96) / 1e18);
+            require(sqrtPriceX96 <= type(uint160).max, "Value exceeds uint160");       
+            try 
+            UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(address(erc20), UniswapRouterInterface(routerAddress).WETH9(), routerAddressV3Fee, sqrtPriceX96)
+            {} catch { poolcreated = false; }
         } else {
-            address factory = UniswapRouterInterface(routerAddress).factory();
-            UniswapFactoryInterface(factory).createPair(address(erc20), UniswapRouterInterface(routerAddress).WETH());            
+            address factory = UniswapRouterInterface(routerAddress).factory();         
+            try 
+            UniswapFactoryInterface(factory).createPair(address(erc20), UniswapRouterInterface(routerAddress).WETH())
+             {} catch { poolcreated = false; }     
         }
-
+        require(poolcreated, "Pool creation failed");  
         exists[address(erc20)] = true;
         erc20.transferOwnership(_msgSender());
         emit TokenCreated(_msgSender(), address(erc20));
         return address(erc20);
     }    
     
-    function mintTokenBlock(address tokenContractAddress, address to) public payable {
+    function mintTokenBlock(address tokenContractAddress, address to, bool refund) public payable {
         require(exists[tokenContractAddress], "Token contract is not registered");
-        VolcanoERC20Token(payable(tokenContractAddress)).mintBlock{ value : msg.value }(to);
+        VolcanoERC20Token(payable(tokenContractAddress)).mintBlock{ value : msg.value }(to, refund);
     }
 
     function registerTokenContract(address tokenContractAddress) external onlyOwner {
