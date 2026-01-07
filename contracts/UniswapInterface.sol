@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity ^0.8.0;
+// Compatible with OpenZeppelin Contracts ^4.9.6
+pragma solidity ^0.8.21;
 
 interface UniswapFactoryInterface {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);

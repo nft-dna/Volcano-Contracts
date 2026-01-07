@@ -14,12 +14,13 @@ async function main(network) {
     const balance  = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, balance);
   
-    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE, ERC20_ROUTER_ADDRESS } = require('../constants');
+    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE, ERC20_ROUTER_ADDRESS, ERC20_ROUTER_POOL_FEE } = require('../constants');
   
 
     /////////
     const Marketplace = await ethers.getContractFactory('VolcanoMarketplace');
     const marketplaceProxy = await upgrades.deployProxy(Marketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	//const marketplaceProxy = await Marketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
     await marketplaceProxy.waitForDeployment();
     console.log('Marketplace Proxy deployed at ', await marketplaceProxy.getAddress());
     const MARKETPLACE_PROXY_ADDRESS = await marketplaceProxy.getAddress();
@@ -28,6 +29,7 @@ async function main(network) {
     /////////
     const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
     const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	//const bundleMarketplaceProxy = await BundleMarketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
     await bundleMarketplaceProxy.waitForDeployment();
     console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
     const BUNDLE_MARKETPLACE_PROXY_ADDRESS = await bundleMarketplaceProxy.getAddress();
@@ -36,6 +38,7 @@ async function main(network) {
     ////////
     const Auction = await ethers.getContractFactory('VolcanoAuction');
     const auctionProxy = await upgrades.deployProxy(Auction, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	//const auctionProxy = await Auction.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
     await auctionProxy.waitForDeployment(); 
     console.log('Auction Proxy deployed at ', await auctionProxy.getAddress());
     const AUCTION_PROXY_ADDRESS = await auctionProxy.getAddress(); 
@@ -58,9 +61,17 @@ async function main(network) {
     console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
     ////////    
 	
+	
+    ////////
+    const volcanoERC20Staking = await ethers.getContractFactory('VolcanoERC20Staking');
+    const erc20Staking = await volcanoERC20Staking.deploy(TREASURY_ADDRESS);
+    await erc20Staking.waitForDeployment();
+	const STAKING_ERC20_ADDRESS = await erc20Staking.getAddress(); 
+    console.log('VolcanoERC20Staking deployed to:', await erc20Staking.getAddress());
+    ////////		
     ////////
     const volcanoERC20Factory = await ethers.getContractFactory('VolcanoERC20Factory');
-    const erc20Factory = await volcanoERC20Factory.deploy(0/*PLATFORM_ERC20FACTORY_NATIVE_PERC*/, 0/*PLATFORM_ERC20FACTORY_TOKEN_PERC*/, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE, ERC20_ROUTER_ADDRESS);
+    const erc20Factory = await volcanoERC20Factory.deploy(0/*PLATFORM_ERC20FACTORY_NATIVE_PERC*/, 0/*PLATFORM_ERC20FACTORY_TOKEN_PERC*/, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE, ERC20_ROUTER_ADDRESS, ERC20_ROUTER_POOL_FEE, STAKING_ERC20_ADDRESS);
     await erc20Factory.waitForDeployment();
 	const FACTORY_ERC20_ADDRESS = await erc20Factory.getAddress(); 
     console.log('VolcanoERC20Factory deployed to:', await erc20Factory.getAddress());

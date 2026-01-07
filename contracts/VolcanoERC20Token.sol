@@ -7,22 +7,25 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
-import "./VolcanoERC20Factory.sol";
+//import "./VolcanoERC20Staking.sol";
+import "./VolcanoERC20FactoryInterface.sol";
 import "./UniswapInterface.sol";
 
 contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20Capped {
     uint256 public initialReserves;
+    uint256 public stakingAmount;
     uint256 public mintBlocksAmount;
     uint256 public mintBlocksFee;
     uint256 public mintBlocksSupply;
     uint256 public mintBlocksMaxSupply;
     // Opensea json metadata format interface
-    string public contractURI;       
-    address public factory;
+    string private _contractURI;      
+    VolcanoERC20FactoryInterface public factory;
     UniswapRouterInterface public routerAddress;  
     //bool public routerAddressIsV3;  
     uint24 public routerAddressV3Fee;   
     mapping(address => uint256) public v3positions; 
+    VolcanoERC20StakingInterface public stakingAddress;
 
     event BlockMinted(address receiver);
 
@@ -37,18 +40,20 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 address _factory,
                 address payable _routerAddress,
                 //bool _routerAddressIsV3,
-                uint24 _routerAddressV3Fee)
+                uint24 _routerAddressV3Fee,
+                uint256 _stakingAmount,
+                VolcanoERC20StakingInterface _stakingAddress)
         ERC20(_name, _symbol)
         //Ownable(msg.sender)
         ERC20Permit(_name)
         ERC20Capped(_capAmount)
     {        
-        require(_capAmount >= _initialAmount, "wrong cap amount");
-        require(_mintBlocks > 0, "mint blocks");
-        contractURI = _uri;
-        factory = _factory;
+        require(_capAmount >= _initialAmount + _stakingAmount, "Cap");
+        require(_mintBlocks > 0, "0blocks");
+        _contractURI = _uri;
+        factory = VolcanoERC20FactoryInterface(_factory);
         initialReserves = _initialAmount;
-        mintBlocksAmount = (_capAmount - _initialAmount) / (2*_mintBlocks);
+        mintBlocksAmount = (_capAmount - _initialAmount - _stakingAmount) / (2*_mintBlocks);
         mintBlocksFee = _mintBlocksFee;
         routerAddress = UniswapRouterInterface(_routerAddress);
         //routerAddressIsV3 = _routerAddressIsV3;
@@ -56,11 +61,35 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         _mint(_initialReceiver, _initialAmount);
         mintBlocksSupply = 0;
         mintBlocksMaxSupply = _mintBlocks;
+        stakingAddress = _stakingAddress;
+        stakingAmount = _stakingAmount;
     }
+
+    function initilizeStaking() public  {
+        //require(msg.sender == address(factory), "not allowed");
+        //require(stakingAmount > 0, "wrong staking amount");
+        if ((stakingAmount > 0) && (msg.sender == address(factory))) {
+            //VolcanoERC20Staking stkAddress = new VolcanoERC20Staking((address(this)), factory.feeRecipient());
+            //stakingAddress = payable(address(stkAddress));
+            _mint(address(stakingAddress), stakingAmount);
+            stakingAddress.fundRewards(address(this), stakingAmount);
+        }    
+    }
+
+    function contractURI() public view returns (string memory) {
+        return _contractURI;
+    }
+    /*function transferOwnership(address newOwner) public override onlyOwner
+    {
+        require(newOwner != address(0), "Zero address not allowed");
+        if (stakingAddress != address(0))
+            Ownable(stakingAddress).transferOwnership(newOwner);
+        super.transferOwnership(newOwner);
+    }*/    
 
     // needed in 4.9.6
     function _mint(address to, uint256 amount) internal override(ERC20, ERC20Capped) {
-        super._mint(to, amount);
+        ERC20Capped._mint(to, amount);
     }
     
     function getTickSpacing(uint24 feeTier) internal pure returns (int24) {
@@ -93,12 +122,12 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     }      
 
     function mintBlock(address to, bool refund) public payable {
-        require(totalSupply() + (2*mintBlocksAmount) <= cap(), "capped");        
-        require(msg.value == mintBlocksFee, "wrong fee");
+        require(totalSupply() + (2*mintBlocksAmount) <= cap(), "Cap");        
+        require(msg.value == mintBlocksFee, "Fee");
         
-        VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
-        address payable feeRecipient = vfactory.feeRecipient();
-        uint256 tokenFeeAmount = (mintBlocksAmount * vfactory.erc20MintTokenFeePerc()) / 10000;
+        //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
+        address payable feeRecipient = factory.feeRecipient();
+        uint256 tokenFeeAmount = (mintBlocksAmount * factory.erc20MintTokenFeePerc()) / 10000;
 
         _mint(to, mintBlocksAmount);
 
@@ -106,12 +135,12 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             _mint(feeRecipient, tokenFeeAmount);
         }
         _mint(address(this), mintBlocksAmount - tokenFeeAmount);
-        uint256 feeAmount = (mintBlocksFee * vfactory.erc20MintFeePerc()) / 10000;
+        uint256 feeAmount = (mintBlocksFee * factory.erc20MintFeePerc()) / 10000;
         _addLiquidityETH(mintBlocksAmount - tokenFeeAmount, mintBlocksFee - feeAmount, to, refund);
 
         if (feeAmount > 0) {
             (bool success,) = feeRecipient.call{ value : feeAmount }("");
-            require(success, "Transfer failed");                 
+            require(success, "Tx failed");                 
         }
 
         mintBlocksSupply = mintBlocksSupply + 1;
@@ -226,11 +255,11 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     }        
 
     function updateContractURI(string memory _uri) public onlyOwner {
-        contractURI = _uri;
+        _contractURI = _uri;
     }   
 
     function collectV3Position(uint256 tokenid) public {
-        require(v3positions[msg.sender] == tokenid, "no owner");
+        require(v3positions[msg.sender] == tokenid, "Owner");
         UniswapPositionManagerInterface.CollectParams memory params = UniswapPositionManagerInterface.CollectParams({
             tokenId: tokenid,
             recipient: msg.sender,
@@ -244,8 +273,8 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     }  
 
     function burnV3Position(address positionOwner) public {
-        VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
-        address payable feeRecipient = vfactory.feeRecipient();        
+        //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
+        address payable feeRecipient = factory.feeRecipient();//VolcanoERC20Factory(payable(factory)).feeRecipient();        
         require(msg.sender == feeRecipient, "not allowed");
         uint256 tokenid = v3positions[positionOwner];
         require(tokenid != 0, "no position"); 
@@ -308,15 +337,15 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
 
     // Withdraw any ETH stored in the contract
     function withdrawETH(uint256 amount) external {
-        VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
-        address payable feeRecipient = vfactory.feeRecipient();
+        //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
+        address payable feeRecipient = factory.feeRecipient();
         //require(msg.sender == feeRecipient, "Forbidden");        
         feeRecipient.transfer(amount);
     }    
 
     function withdrawTokens(address token, uint256 amount) external {
-        VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
-        address payable feeRecipient = vfactory.feeRecipient();
+        //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
+        address payable feeRecipient = factory.feeRecipient();
         //require(msg.sender == feeRecipient, "Forbidden");        
         transferFrom(token, feeRecipient, amount);
     }      

@@ -84,8 +84,15 @@ async function main(network) {
     ///////
 	
     ////////
+    const volcanoERC20Staking = await ethers.getContractFactory('VolcanoERC20Staking');
+    const erc20Staking = await volcanoERC20Staking.deploy(TREASURY_ADDRESS);
+    await erc20Staking.waitForDeployment();
+	const STAKING_ERC20_ADDRESS = await erc20Staking.getAddress(); 
+    console.log('VolcanoERC20Staking deployed to:', await erc20Staking.getAddress());
+    ////////			
+    ////////
     const volcanoERC20Factory = await ethers.getContractFactory('VolcanoERC20Factory');
-    const erc20Factory = await volcanoERC20Factory.deploy(0/*PLATFORM_ERC20FACTORY_NATIVE_PERC*/, 0/*PLATFORM_ERC20FACTORY_TOKEN_PERC*/, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE, ERC20_ROUTER_ADDRESS);
+    const erc20Factory = await volcanoERC20Factory.deploy(0/*PLATFORM_ERC20FACTORY_NATIVE_PERC*/, 0/*PLATFORM_ERC20FACTORY_TOKEN_PERC*/, TREASURY_ADDRESS, PLATFORM_FACTORY_FEE, ERC20_ROUTER_ADDRESS, ERC20_ROUTER_POOL_FEE, STAKING_ERC20_ADDRESS);
     await erc20Factory.waitForDeployment();
 	const FACTORY_ERC20_ADDRESS = await erc20Factory.getAddress(); 
     console.log('VolcanoERC20Factory deployed to:', await erc20Factory.getAddress());
