@@ -40,3 +40,43 @@ Deployer's balance:  2653468233299124825n
 //
 RandomNumberOracle deployed to: 0x762ff0701c4a086773468CB721a1E6533C72897c
 PriceOracleProxy deployed to: 0xDE02bfF014E88bD18839a23FbD0EaC883f526524
+
+
+// Unichain Sepolia
+Deployer's address:  0xe549de602376Cbe7D57982A251C6acEFb8aE81B9 (** 0xE8aF6d7e77f5D9953d99822812DCe227551df1D7 for newer VolcanoERC20Staking\Factory)
+Marketplace Proxy deployed at  0xDdB37559c5c67F90F8F5C777a45dDDc7AEa5fBc2
+Bundle Marketplace Proxy deployed at 0xfcD64De6a1Bf1f87c1ba40b7D78218cb3718a48b 
+Auction Proxy deployed at  0x250edB1C454229683bef62B449B03b5DEA7B6cB5
+// newer ERC20Factory (**)
+	VolcanoERC20Staking deployed at 0x96F8fA9c76658604C9405e99174792c5400e5bAd
+	VolcanoERC20Factory deployed to: 0x59aCe9EA6Be2AabCc9F37B6F217477E4464bE139
+// older ERC20Factory
+	VolcanoERC20Factory deployed to: 0x8223Aa202d59e9CcCF52AA0ea3057aE079d3ce33
+VolcanoERC721Factory deployed to: 0x02c394f17074A5B017f5A2d9E2D16A464D432b4F
+VolcanoERC1155Factory deployed to: 0xB0CfbB445C4E1cB4Cd094404437Ee9Ac5a3418Dd
+VolcanoTokenRegistry deployed to 0xa6Ac8B961F7f9510c86D0a619F55E0D4d653E454
+VolcanoAddressRegistry deployed to 0x08702E7ebB8a07E8560D3D80Ad51d653a0E2805C
+VolcanoPriceFeed deployed to 0x08f038b66A12A463e66a11d90b889e41F186CA9c
+// Sepolia wETH 0x4200000000000000000000000000000000000006
+// older 
+	RandomNumberOracle deployed to: 0xbf041ACc7145349631351A5E9915722281C20C9b
+	PriceOracleProxy deployed to:
+// newer (**)
+	RandomNumberOracle deployed to: 0xc79476D346582a8E1a116c89C5F44E091Ed3aBB8
+			=== Contract Deployment Info ===
+			Name:         RandomNumberOracle
+			Address:      0xc79476D346582a8E1a116c89C5F44E091Ed3aBB8
+			Tx Hash:      0xe38459e46fe70df0006d4023108ed696337393f31daed8f9f1f99e7350b7918f
+			Block Number: 41305960
+			Timestamp:   1768158388
+			Date:        2026-01-11T19:06:28.000Z
+			================================
+	PriceOracleProxy deployed to: 0xFD8D63b093023074765a9A3C422A2fB70F89f022
+			=== Contract Deployment Info ===
+			Name:         PriceOracleProxy
+			Address:      0xFD8D63b093023074765a9A3C422A2fB70F89f022
+			Tx Hash:      0xe5ebac12313d57857f95108805a253a9757813603c9157a2e00c9a1e59187dd0
+			Block Number: 41305967
+			Timestamp:   1768158395
+			Date:        2026-01-11T19:06:35.000Z
+			================================

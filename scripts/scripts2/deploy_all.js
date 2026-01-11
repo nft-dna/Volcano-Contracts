@@ -2,7 +2,7 @@
 // run: npx hardhat node on a terminal
 // then run: npx hardhat run --network localhost scripts/scripts2/deploy_all.js
 
-import { logDeployment } from "./logDeployment.js";
+const  { logDeployment } = require("./logDeployment.js");
 
 async function main(network) {
 
@@ -30,13 +30,13 @@ async function main(network) {
     /////////
 
     /////////
-    //const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
-    //const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
-	////const bundleMarketplaceProxy = await BundleMarketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
-    //await bundleMarketplaceProxy.waitForDeployment();
-    //console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
-    //const BUNDLE_MARKETPLACE_PROXY_ADDRESS = await bundleMarketplaceProxy.getAddress();
-	//await logDeployment("VolcanoBundleMarketplace", bundleMarketplaceProxy, ethers.provider);
+    const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
+    const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	//const bundleMarketplaceProxy = await BundleMarketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
+    await bundleMarketplaceProxy.waitForDeployment();
+    console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
+    const BUNDLE_MARKETPLACE_PROXY_ADDRESS = await bundleMarketplaceProxy.getAddress();
+	await logDeployment("VolcanoBundleMarketplace", bundleMarketplaceProxy, ethers.provider);
     ////////
 
     ////////

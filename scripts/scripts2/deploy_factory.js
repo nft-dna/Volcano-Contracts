@@ -2,7 +2,7 @@
 // run: npx hardhat node on a terminal
 // then run: npx hardhat run --network localhost scripts/scripts2/deploy_factory.js
 
-import { logDeployment } from "./logDeployment.js";
+const  { logDeployment } = require("./logDeployment.js");
 
 async function main(network) {
 
@@ -16,7 +16,7 @@ async function main(network) {
     const balance  = await ethers.provider.getBalance(deployer);//deployer.getBalance();
     console.log(`Deployer's balance: `, balance);
   
-    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE, ERC20_ROUTER_ADDRESS } = require('../constants');
+    const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_WETH_MAINNET, WRAPPED_WETH_TESTNET, PLATFORM_FACTORY_FEE, PLATFORM_MINT_FEE, ERC20_ROUTER_ADDRESS, ERC20_ROUTER_POOL_FEE } = require('../constants');
   
 	const AUCTION_PROXY_ADDRESS = '0x57EBE4C797572AF95C70B04a941AE9E71c467bb6';
 	const MARKETPLACE_PROXY_ADDRESS = '0x99621a66edf5B9e16B510Ff8A2A56094D698c275';	
