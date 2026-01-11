@@ -3,10 +3,10 @@ pragma solidity ^0.8.21;
 
 // PreFunded BondStaking 
 
-//import "@openzeppelin/contracts@4.9.6/access/Ownable.sol";
-import "@openzeppelin/contracts@4.9.6/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts@4.9.6/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts@4.9.6/utils/math/Math.sol";
+//import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./VolcanoERC20FactoryInterface.sol";
 
 contract VolcanoERC20Staking is ReentrancyGuard, VolcanoERC20StakingInterface/*, Ownable*/ {
@@ -49,7 +49,12 @@ contract VolcanoERC20Staking is ReentrancyGuard, VolcanoERC20StakingInterface/*,
         rewardRate[360 days] = 25e16;  // 25%        
     }
 
-    function fundRewards(address token, uint256 amount) external /*onlyOwner*/ {
+    function RegisterTokenRewards(address token, uint256 amount) external /*onlyOwner*/ {
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        fundRewards(token, amount);
+    }
+
+    function fundRewards(address token, uint256 amount) public /*onlyOwner*/ {
         require(token != address(0), "Token");        
         require(amount > 0, "Amount");          
         require(RewardPool[token] == 0, "Already");

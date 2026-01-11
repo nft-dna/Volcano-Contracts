@@ -2,6 +2,8 @@
 // run: npx hardhat node on a terminal
 // then run: npx hardhat run --network localhost scripts/scripts2/deploy_extras.js
 
+import { logDeployment } from "./logDeployment.js";
+
 async function main(network) {
 
     console.log('network: ', network.name);
@@ -19,6 +21,7 @@ async function main(network) {
     const randomNumberOracle = await RandomNumberOracle.deploy(RANDOM_NUMBER_PROVIDER_ADDRESS);
     await randomNumberOracle.waitForDeployment();        
     console.log('RandomNumberOracle deployed to:', await randomNumberOracle.getAddress());
+	await logDeployment("RandomNumberOracle", randomNumberOracle, ethers.provider);
     ///////   
 
     ///////
@@ -26,6 +29,7 @@ async function main(network) {
     const priceOracleProxy = await PriceOracleProxy.deploy();
     await priceOracleProxy.waitForDeployment();    
     console.log('PriceOracleProxy deployed to:', await priceOracleProxy.getAddress());
+	await logDeployment("PriceOracleProxy", priceOracleProxy, ethers.provider);
     ////////    
     
     const finalbalance = await ethers.provider.getBalance(deployer);//deployer.getBalance();

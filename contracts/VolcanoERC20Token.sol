@@ -27,11 +27,11 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     mapping(address => uint256) public v3positions; 
     VolcanoERC20StakingInterface public stakingAddress;
 
-    event BlockMinted(address receiver);
+    event BlocksMinted(address receiver, uint256 count);
 
     constructor(string memory _name, 
                 string memory _symbol, 
-                string memory _uri,                 
+                //string memory _uri,                 
                 address _initialReceiver, 
                 uint256 _initialAmount, 
                 uint256 _capAmount, 
@@ -41,8 +41,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 address payable _routerAddress,
                 //bool _routerAddressIsV3,
                 uint24 _routerAddressV3Fee,
-                uint256 _stakingAmount,
-                VolcanoERC20StakingInterface _stakingAddress)
+                uint256 _stakingAmount)
         ERC20(_name, _symbol)
         //Ownable(msg.sender)
         ERC20Permit(_name)
@@ -50,7 +49,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     {        
         require(_capAmount >= _initialAmount + _stakingAmount, "Cap");
         require(_mintBlocks > 0, "0blocks");
-        _contractURI = _uri;
+        //_contractURI = _uri;
         factory = VolcanoERC20FactoryInterface(_factory);
         initialReserves = _initialAmount;
         mintBlocksAmount = (_capAmount - _initialAmount - _stakingAmount) / (2*_mintBlocks);
@@ -61,14 +60,15 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         _mint(_initialReceiver, _initialAmount);
         mintBlocksSupply = 0;
         mintBlocksMaxSupply = _mintBlocks;
-        stakingAddress = _stakingAddress;
+        stakingAddress = VolcanoERC20StakingInterface(address(0));//_stakingAddress;
         stakingAmount = _stakingAmount;
     }
 
-    function initilizeStaking() public  {
+    function initilizeStaking(VolcanoERC20StakingInterface _stakingAddress) public  {
         //require(msg.sender == address(factory), "not allowed");
         //require(stakingAmount > 0, "wrong staking amount");
         if ((stakingAmount > 0) && (msg.sender == address(factory))) {
+            stakingAddress = _stakingAddress;
             //VolcanoERC20Staking stkAddress = new VolcanoERC20Staking((address(this)), factory.feeRecipient());
             //stakingAddress = payable(address(stkAddress));
             _mint(address(stakingAddress), stakingAmount);
@@ -121,30 +121,30 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         return maxUsable;
     }      
 
-    function mintBlock(address to, bool refund) public payable {
-        require(totalSupply() + (2*mintBlocksAmount) <= cap(), "Cap");        
-        require(msg.value == mintBlocksFee, "Fee");
+    function mintBlocks(address to, uint256 count, bool refund) public payable {
+        require(totalSupply() + (2*mintBlocksAmount*count) <= cap(), "Cap");        
+        require(msg.value == mintBlocksFee*count, "Fee");
         
         //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
         address payable feeRecipient = factory.feeRecipient();
-        uint256 tokenFeeAmount = (mintBlocksAmount * factory.erc20MintTokenFeePerc()) / 10000;
+        uint256 tokenFeeAmount = (mintBlocksAmount*count * factory.erc20MintTokenFeePerc()) / 10000;
 
-        _mint(to, mintBlocksAmount);
+        _mint(to, mintBlocksAmount*count);
 
         if (tokenFeeAmount > 0) {
             _mint(feeRecipient, tokenFeeAmount);
         }
-        _mint(address(this), mintBlocksAmount - tokenFeeAmount);
-        uint256 feeAmount = (mintBlocksFee * factory.erc20MintFeePerc()) / 10000;
-        _addLiquidityETH(mintBlocksAmount - tokenFeeAmount, mintBlocksFee - feeAmount, to, refund);
+        _mint(address(this), mintBlocksAmount*count - tokenFeeAmount);
+        uint256 feeAmount = (mintBlocksFee*count * factory.erc20MintFeePerc()) / 10000;
+        _addLiquidityETH(mintBlocksAmount*count - tokenFeeAmount, mintBlocksFee*count - feeAmount, to, refund);
 
         if (feeAmount > 0) {
             (bool success,) = feeRecipient.call{ value : feeAmount }("");
             require(success, "Tx failed");                 
         }
 
-        mintBlocksSupply = mintBlocksSupply + 1;
-        emit BlockMinted(to);
+        mintBlocksSupply = mintBlocksSupply + count;
+        emit BlocksMinted(to, count);
      }
 
     function _addLiquidityETH(

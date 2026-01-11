@@ -100,7 +100,7 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
         VolcanoERC20Token erc20 = new VolcanoERC20Token(
                 _name, 
                 _symbol, 
-                _uri, 
+                //_uri, 
                 _initialReceiver, 
                 _initialAmount, 
                 _capAmount, 
@@ -110,12 +110,11 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
                 routerAddress,
                 //routerAddressIsV3,
                 routerAddressV3Fee,
-                _stakingAmount,
-                stakingAddress
-
+                _stakingAmount
         );
+        erc20.updateContractURI(_uri);
         if (_stakingAmount > 0) {
-            erc20.initilizeStaking();
+            erc20.initilizeStaking(stakingAddress);
         }
         
         bool poolcreated = true;           
@@ -146,9 +145,9 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
         return address(erc20);
     }    
     
-    function mintTokenBlock(address tokenContractAddress, address to, bool refund) public payable {
+    function mintTokenBlocks(address tokenContractAddress, address to, uint256 count, bool refund) public payable {
         require(exists[tokenContractAddress], "Unregistered");
-        VolcanoERC20Token(payable(tokenContractAddress)).mintBlock{ value : msg.value }(to, refund);
+        VolcanoERC20Token(payable(tokenContractAddress)).mintBlocks{ value : msg.value }(to, count, refund);
     }
 
     /*

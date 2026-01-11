@@ -2,6 +2,8 @@
 // run: npx hardhat node on a terminal
 // then run: npx hardhat run --network localhost scripts/scripts2/deploy_all.js
 
+import { logDeployment } from "./logDeployment.js";
+
 async function main(network) {
 
     console.log('network: ', network.name);
@@ -24,15 +26,17 @@ async function main(network) {
     await marketplaceProxy.waitForDeployment();
     console.log('Marketplace Proxy deployed at ', await marketplaceProxy.getAddress());
     const MARKETPLACE_PROXY_ADDRESS = await marketplaceProxy.getAddress();
+	await logDeployment("VolcanoMarketplace", marketplaceProxy, ethers.provider);
     /////////
 
     /////////
-    const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
-    const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
-	//const bundleMarketplaceProxy = await BundleMarketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
-    await bundleMarketplaceProxy.waitForDeployment();
-    console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
-    const BUNDLE_MARKETPLACE_PROXY_ADDRESS = await bundleMarketplaceProxy.getAddress();
+    //const BundleMarketplace = await ethers.getContractFactory('VolcanoBundleMarketplace');
+    //const bundleMarketplaceProxy = await upgrades.deployProxy(BundleMarketplace, [TREASURY_ADDRESS, PLATFORM_FEE], { initializer: 'initialize', kind: 'uups' });
+	////const bundleMarketplaceProxy = await BundleMarketplace.deploy(TREASURY_ADDRESS, PLATFORM_FEE);
+    //await bundleMarketplaceProxy.waitForDeployment();
+    //console.log('Bundle Marketplace Proxy deployed at ', await bundleMarketplaceProxy.getAddress());  
+    //const BUNDLE_MARKETPLACE_PROXY_ADDRESS = await bundleMarketplaceProxy.getAddress();
+	//await logDeployment("VolcanoBundleMarketplace", bundleMarketplaceProxy, ethers.provider);
     ////////
 
     ////////
@@ -42,6 +46,7 @@ async function main(network) {
     await auctionProxy.waitForDeployment(); 
     console.log('Auction Proxy deployed at ', await auctionProxy.getAddress());
     const AUCTION_PROXY_ADDRESS = await auctionProxy.getAddress(); 
+	await logDeployment("VolcanoAuction", auctionProxy, ethers.provider);
     ////////
        
 
@@ -51,6 +56,7 @@ async function main(network) {
     await erc721Factory.waitForDeployment();        
 	const FACTORY_ERC721_ADDRESS = await erc721Factory.getAddress(); 
     console.log('VolcanoERC721Factory deployed to:', await erc721Factory.getAddress());
+	await logDeployment("VolcanoERC721Factory", erc721Factory, ethers.provider);
     ///////  
     
     ////////
@@ -59,6 +65,7 @@ async function main(network) {
     await erc1155Factory.waitForDeployment();
 	const FACTORY_ERC1155_ADDRESS = await erc1155Factory.getAddress(); 
     console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
+	await logDeployment("VolcanoERC1155Factory", erc1155Factory, ethers.provider);
     ////////    
 	
 	
@@ -68,6 +75,7 @@ async function main(network) {
     await erc20Staking.waitForDeployment();
 	const STAKING_ERC20_ADDRESS = await erc20Staking.getAddress(); 
     console.log('VolcanoERC20Staking deployed to:', await erc20Staking.getAddress());
+	await logDeployment("VolcanoERC20Staking", erc20Staking, ethers.provider);
     ////////		
     ////////
     const volcanoERC20Factory = await ethers.getContractFactory('VolcanoERC20Factory');
@@ -75,6 +83,7 @@ async function main(network) {
     await erc20Factory.waitForDeployment();
 	const FACTORY_ERC20_ADDRESS = await erc20Factory.getAddress(); 
     console.log('VolcanoERC20Factory deployed to:', await erc20Factory.getAddress());
+	await logDeployment("VolcanoERC20Factory", erc20Factory, ethers.provider);
     ////////	
     
     ////////
@@ -82,6 +91,7 @@ async function main(network) {
     const tokenRegistry = await TokenRegistry.deploy();
     await tokenRegistry.waitForDeployment(); 
     console.log('VolcanoTokenRegistry deployed to', await tokenRegistry.getAddress());
+	await logDeployment("VolcanoTokenRegistry", tokenRegistry, ethers.provider);
     ////////
 
     ////////
@@ -90,6 +100,7 @@ async function main(network) {
     await addressRegistry.waitForDeployment();  
     console.log('VolcanoAddressRegistry deployed to', await addressRegistry.getAddress());
     const ADDRESS_REGISTRY = await addressRegistry.getAddress();
+	await logDeployment("VolcanoAddressRegistry", addressRegistry, ethers.provider);
     ////////
 
     ////////
@@ -98,6 +109,7 @@ async function main(network) {
     const priceFeed = await PriceFeed.deploy( ADDRESS_REGISTRY, WRAPPED_WETH);
     await priceFeed.waitForDeployment();  
     console.log('VolcanoPriceFeed deployed to', await priceFeed.getAddress());
+	await logDeployment("VolcanoPriceFeed", priceFeed, ethers.provider);
     ////////
     
     await marketplaceProxy.updateAddressRegistry(ADDRESS_REGISTRY);   

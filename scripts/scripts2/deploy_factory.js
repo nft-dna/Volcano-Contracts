@@ -2,6 +2,8 @@
 // run: npx hardhat node on a terminal
 // then run: npx hardhat run --network localhost scripts/scripts2/deploy_factory.js
 
+import { logDeployment } from "./logDeployment.js";
+
 async function main(network) {
 
     console.log('network: ', network.name);
@@ -39,6 +41,7 @@ async function main(network) {
     await erc721Factory.waitForDeployment();        
 	const FACTORY_ERC721_ADDRESS = await erc721Factory.getAddress(); 
     console.log('VolcanoERC721Factory deployed to:', await erc721Factory.getAddress());
+	await logDeployment("VolcanoERC721Factory", erc721Factory, ethers.provider);
     ///////
    
     ///////
@@ -63,6 +66,7 @@ async function main(network) {
     await erc1155Factory.waitForDeployment();
 	const FACTORY_ERC1155_ADDRESS = await erc1155Factory.getAddress(); 
     console.log('VolcanoERC1155Factory deployed to:', await erc1155Factory.getAddress());
+	await logDeployment("VolcanoERC1155Factory", erc1155Factory, ethers.provider);
     ////////
     
     ////////
@@ -89,6 +93,7 @@ async function main(network) {
     await erc20Staking.waitForDeployment();
 	const STAKING_ERC20_ADDRESS = await erc20Staking.getAddress(); 
     console.log('VolcanoERC20Staking deployed to:', await erc20Staking.getAddress());
+	await logDeployment("VolcanoERC20Staking", erc20Staking, ethers.provider);
     ////////			
     ////////
     const volcanoERC20Factory = await ethers.getContractFactory('VolcanoERC20Factory');
@@ -96,6 +101,7 @@ async function main(network) {
     await erc20Factory.waitForDeployment();
 	const FACTORY_ERC20_ADDRESS = await erc20Factory.getAddress(); 
     console.log('VolcanoERC20Factory deployed to:', await erc20Factory.getAddress());
+	await logDeployment("VolcanoERC20Factory", erc20Factory, ethers.provider);
     ////////
     
     ////////
