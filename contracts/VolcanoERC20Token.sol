@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "./VolcanoERC20FactoryInterface.sol";
 import "./UniswapInterface.sol";
 
+
 contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20Capped {
     uint256 public initialReserves;
     uint256 public stakingAmount;
@@ -25,6 +26,8 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     //bool public routerAddressIsV3;  
     uint24 public routerAddressV3Fee;   
     mapping(address => uint256) public v3positions; 
+    mapping(address => uint256) public v3PositionCreatedAt;
+    uint256 public constant POSITION_LOCK_PERIOD = 365 days;
     VolcanoERC20StakingInterface public stakingAddress;
 
     event BlocksMinted(address receiver, uint256 count);
@@ -178,6 +181,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 });      
                 (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(positionManager).mint(params); 
                 v3positions[to] = tokenId;
+                v3PositionCreatedAt[to] = block.timestamp;
             } else {
                 bool swappos = (_weth9Address<address(this));
                 UniswapPositionManagerInterface.IncreaseLiquidityParams memory params = UniswapPositionManagerInterface.IncreaseLiquidityParams({
@@ -275,9 +279,10 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
     function burnV3Position(address positionOwner) public {
         //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
         address payable feeRecipient = factory.feeRecipient();//VolcanoERC20Factory(payable(factory)).feeRecipient();        
-        require(msg.sender == feeRecipient, "not allowed");
+        require(msg.sender == positionOwner || msg.sender == feeRecipient, "not allowed");
         uint256 tokenid = v3positions[positionOwner];
         require(tokenid != 0, "no position"); 
+        require(block.timestamp >= v3PositionCreatedAt[positionOwner] + POSITION_LOCK_PERIOD, "Position locked");        
         uint128 liquidity;
         address token0;
         address token1;
@@ -312,12 +317,13 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
 
         UniswapPositionManagerInterface.CollectParams memory cparams = UniswapPositionManagerInterface.CollectParams({
                 tokenId: tokenid,
-                recipient: feeRecipient,
+                recipient: positionOwner, //feeRecipient,
                 amount0Max: type(uint128).max,
                 amount1Max: type(uint128).max
             });
         (amount0, amount1) = UniswapPositionManagerInterface(positionManager).collect(cparams);
         v3positions[positionOwner] = 0;
+        v3PositionCreatedAt[positionOwner] = 0;
         //ERC20(token0).transfer(feeRecipient, amount0);
         //ERC20(token1).transfer(feeRecipient, amount1);
         UniswapPositionManagerInterface(positionManager).burn(tokenid);
@@ -350,3 +356,4 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         transferFrom(token, feeRecipient, amount);
     }      
 }
+
