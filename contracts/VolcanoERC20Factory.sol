@@ -121,14 +121,11 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
-            uint256 blockTokenAmount = _capAmount / (_mintBlocks * 2);            
-            //uint256 Q96 = 2 ** 96;
-            //uint256 scaledWethAmount = _mintBlocksFee * Q96 ** 2;
-            //uint256 priceRatio = scaledWethAmount / blockTokenAmount;            
-            //uint160 sqrtPriceX96 = uint160(Math.sqrt(priceRatio));
-            uint256 desiredPrice = blockTokenAmount / _mintBlocksFee;
-            uint160 sqrtPriceX96 = uint160((desiredPrice * 2**96) / 1e18);
-            require(sqrtPriceX96 <= type(uint160).max, "Value uint160");       
+            uint256 blockTokenAmount = (_capAmount - _initialAmount - _stakingAmount) / (_mintBlocks * 2);            
+            //uint256 desiredPrice = blockTokenAmount / _mintBlocksFee;
+            //uint160 sqrtPriceX96 = uint160((desiredPrice * 2**96) / 1e18);
+            uint160 sqrtPriceX96 = encodePriceSqrt(blockTokenAmount, _mintBlocksFee);
+            require(sqrtPriceX96 <= type(uint160).max && sqrtPriceX96 > 0, "Value uint160");                   
             try 
             UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(address(erc20), UniswapRouterInterface(routerAddress).WETH9(), routerAddressV3Fee, sqrtPriceX96)
             {} catch { poolcreated = false; }
@@ -144,6 +141,11 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
         emit TokenCreated(_msgSender(), address(erc20));
         return address(erc20);
     }    
+
+    function encodePriceSqrt(uint256 amount1, uint256 amount0) internal pure returns (uint160) {
+        uint256 ratio = (amount1 << 192) / amount0;
+        return uint160(Math.sqrt(ratio));
+    }
     
     function mintTokenBlocks(address tokenContractAddress, address to, uint256 count, bool refund) public payable {
         require(exists[tokenContractAddress], "Unregistered");

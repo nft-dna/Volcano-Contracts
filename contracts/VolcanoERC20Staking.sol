@@ -36,6 +36,7 @@ contract VolcanoERC20Staking is ReentrancyGuard, VolcanoERC20StakingInterface/*,
     mapping(address => StakeInfo[]) public stakes;
 
     // Events
+    event Created( address user, address indexed token, uint256 amount);
     event Staked( address indexed user, address token, uint256 amount, uint256 reward, uint256 unlockTime);
     event Unstaked( address indexed user, address token, uint256 amount, uint256 reward, uint256 penalty);
 
@@ -63,6 +64,7 @@ contract VolcanoERC20Staking is ReentrancyGuard, VolcanoERC20StakingInterface/*,
         //Tokens[token] = IERC20(token);
         //TokensPermit[token] = IERC20Permit(token);               
         RewardPool[token] = amount;
+        emit Created(msg.sender, token, amount);
     }
 
     /// @notice Stake tokens using permit (NO approve needed)

@@ -57,6 +57,8 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         initialReserves = _initialAmount;
         mintBlocksAmount = (_capAmount - _initialAmount - _stakingAmount) / (2*_mintBlocks);
         mintBlocksFee = _mintBlocksFee;
+        //uint256 minFee = mintBlocksAmount / 1e4;
+        //require(mintBlocksFee >= minFee, "Fee too low");        
         routerAddress = UniswapRouterInterface(_routerAddress);
         //routerAddressIsV3 = _routerAddressIsV3;
         routerAddressV3Fee = _routerAddressV3Fee;
@@ -105,14 +107,11 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
 
     function getMinUsableTick(uint24 feeTier) internal pure returns (int24) {
         int24 tickSpacing = getTickSpacing(feeTier);
-        
-        // Round MIN_TICK up to the nearest multiple of tickSpacing
-        int24 minUsable = (MIN_TICK / tickSpacing) * tickSpacing;
-        if (MIN_TICK % tickSpacing != 0) {
-            minUsable += tickSpacing; // Ensure it's a valid tick
-        }
 
-        return minUsable;
+        int24 min = (MIN_TICK / tickSpacing) * tickSpacing;
+        if (min < MIN_TICK) min += tickSpacing;
+
+        return min;
     }
 
     function getMaxUsableTick(uint24 feeTier) internal pure returns (int24) {
@@ -151,8 +150,8 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
      }
 
     function _addLiquidityETH(
-        uint amountToken,
-        uint amountETH,
+        uint256 amountToken,
+        uint256 amountETH,
         address to, bool refund) internal {           
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
@@ -164,26 +163,30 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             UniswapWETH9Interface(_weth9Address).deposit{ value : amountETH }(); 
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
             ERC20(address(this)).approve(positionManager, amountToken);  
-            ERC20(_weth9Address).approve(positionManager, amountETH);                                               
+            ERC20(_weth9Address).approve(positionManager, amountETH);      
+            bool swappos = (_weth9Address<address(this));
+            uint256 am0;
+            uint256 am1;      
             if (tokenId == 0) {
                 UniswapPositionManagerInterface.MintParams memory params = UniswapPositionManagerInterface.MintParams({
-                    token0: address(this),
-                    token1: _weth9Address,
+                    token0: swappos ? _weth9Address : address(this),
+                    token1: swappos ? address(this) : _weth9Address,
                     fee: routerAddressV3Fee,
                     tickLower: getMinUsableTick(routerAddressV3Fee),
                     tickUpper: getMaxUsableTick(routerAddressV3Fee),
-                    amount0Desired: amountToken,
-                    amount1Desired: amountETH,
+                    amount0Desired: swappos ? amountETH : amountToken,
+                    amount1Desired: swappos ? amountToken : amountETH,
                     amount0Min: 1,
                     amount1Min: 1,
                     recipient: address(this),
                     deadline: block.timestamp + 30
                 });      
-                (tokenId, liquidity, amount0, amount1) = UniswapPositionManagerInterface(positionManager).mint(params); 
+                (tokenId, liquidity, am0, am1) = UniswapPositionManagerInterface(positionManager).mint(params);  
                 v3positions[to] = tokenId;
                 v3PositionCreatedAt[to] = block.timestamp;
-            } else {
-                bool swappos = (_weth9Address<address(this));
+                amount0 = swappos ? am1 : am0;
+                amount1 = swappos ? am0 : am1;   
+            } else {                
                 UniswapPositionManagerInterface.IncreaseLiquidityParams memory params = UniswapPositionManagerInterface.IncreaseLiquidityParams({
                     tokenId: tokenId,
                     amount0Desired: swappos ? amountETH : amountToken,
@@ -192,8 +195,6 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     amount1Min: 1,
                     deadline: block.timestamp + 30
                 });      
-                uint256 am0;
-                uint256 am1;
                 (liquidity, am0, am1) = UniswapPositionManagerInterface(positionManager).increaseLiquidity(params);                 
                 amount0 = swappos ? am1 : am0;
                 amount1 = swappos ? am0 : am1;
@@ -241,8 +242,9 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                 if (amount1 < amountETH) {
                     uint256 refund1 = amountETH - amount1;
                     address[] memory path;
-                    path = new address[](1);
-                    path[0] = address(this);                   
+                    path = new address[](2);
+                    path[0] = routerAddress.WETH9();
+                    path[1] = address(this);                      
                     try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30) {                
                     } catch {
                         payable(to).transfer(refund1);
@@ -353,7 +355,8 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         //VolcanoERC20Factory vfactory = VolcanoERC20Factory(payable(factory));
         address payable feeRecipient = factory.feeRecipient();
         //require(msg.sender == feeRecipient, "Forbidden");        
-        transferFrom(token, feeRecipient, amount);
+        //transferFrom(token, feeRecipient, amount);
+        ERC20(token).transfer(feeRecipient, amount);
     }      
 }
 

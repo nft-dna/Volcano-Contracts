@@ -63,7 +63,7 @@ interface UniswapRouterInterface {
 	function swapExactTokensForTokens( uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline ) external  returns (uint[] memory amounts);
     
 
-    // v3
+    // v3 (SwapRouter02, V3 compatible V2, not exactly V3..)
     function WETH9() external pure returns (address);    
     function factoryV2() external view returns (address);
     function positionManager() external view returns (address);
