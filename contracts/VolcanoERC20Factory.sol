@@ -120,14 +120,26 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
         bool poolcreated = true;           
         //if (routerAddressIsV3) {
         if (routerAddressV3Fee > 0) {
+            address tokenA;
+            address tokenB;         
+            uint160 sqrtPriceX96;          
             address positionManager = UniswapRouterInterface(routerAddress).positionManager();
             uint256 blockTokenAmount = (_capAmount - _initialAmount - _stakingAmount) / (_mintBlocks * 2);            
-            //uint256 desiredPrice = blockTokenAmount / _mintBlocksFee;
-            //uint160 sqrtPriceX96 = uint160((desiredPrice * 2**96) / 1e18);
-            uint160 sqrtPriceX96 = encodePriceSqrt(blockTokenAmount, _mintBlocksFee);
+            if (address(erc20) < UniswapRouterInterface(routerAddress).WETH9())
+            {
+                tokenA = address(erc20);
+                tokenB = UniswapRouterInterface(routerAddress).WETH9(); 
+                sqrtPriceX96 = encodePriceSqrt(blockTokenAmount, _mintBlocksFee);
+            }
+            else
+            {
+                tokenA = UniswapRouterInterface(routerAddress).WETH9(); 
+                tokenB = address(erc20);
+                sqrtPriceX96 = encodePriceSqrt(_mintBlocksFee, blockTokenAmount);
+            }
             require(sqrtPriceX96 <= type(uint160).max && sqrtPriceX96 > 0, "Value uint160");                   
             try 
-            UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(address(erc20), UniswapRouterInterface(routerAddress).WETH9(), routerAddressV3Fee, sqrtPriceX96)
+            UniswapPositionManagerInterface(positionManager).createAndInitializePoolIfNecessary(tokenA, tokenB, routerAddressV3Fee, sqrtPriceX96)
             {} catch { poolcreated = false; }
         } else {
             address factory = UniswapRouterInterface(routerAddress).factory();         
