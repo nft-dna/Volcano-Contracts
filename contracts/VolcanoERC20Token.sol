@@ -153,7 +153,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
         uint256 amountToken,
         uint256 amountETH,
         address to, bool refund) internal {           
-        //if (routerAddressIsV3) {
+
         if (routerAddressV3Fee > 0) {
             uint256 tokenId = v3positions[to];
             uint128 liquidity;
@@ -179,7 +179,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     amount0Min: 1,
                     amount1Min: 1,
                     recipient: address(this),
-                    deadline: block.timestamp + 30
+                    deadline: block.timestamp + 300
                 });      
                 (tokenId, liquidity, am0, am1) = UniswapPositionManagerInterface(positionManager).mint(params);  
                 v3positions[to] = tokenId;
@@ -193,7 +193,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     amount1Desired: swappos ? amountToken : amountETH,
                     amount0Min: 1,
                     amount1Min: 1,
-                    deadline: block.timestamp + 30
+                    deadline: block.timestamp + 300
                 });      
                 (liquidity, am0, am1) = UniswapPositionManagerInterface(positionManager).increaseLiquidity(params);                 
                 amount0 = swappos ? am1 : am0;
@@ -208,7 +208,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     swparams.tokenOut = address(this);
                     swparams.fee = routerAddressV3Fee;
                     swparams.recipient = to;
-                    //swparams.deadline = block.timestamp + 30;
+                    //swparams.deadline = block.timestamp + 300;
                     swparams.amountIn = refund1;
                     swparams.amountOutMinimum = 1;
                     swparams.sqrtPriceLimitX96 = 0; //MAX_PRICE_LIMIT;     
@@ -236,7 +236,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
             uint amount1;   
             _approve(address(this), address(routerAddress), amountToken);  
 
-            (amount0, amount1, liquidity) = routerAddress.addLiquidityETH{ value : amountETH }(address(this), amountToken, 0, 0, to, block.timestamp + 30);
+            (amount0, amount1, liquidity) = routerAddress.addLiquidityETH{ value : amountETH }(address(this), amountToken, 0, 0, to, block.timestamp + 300);
             
             if (refund) { 
                 if (amount1 < amountETH) {
@@ -245,7 +245,7 @@ contract VolcanoERC20Token is ERC20, ERC20Burnable, Ownable, ERC20Permit, ERC20C
                     path = new address[](2);
                     path[0] = routerAddress.WETH9();
                     path[1] = address(this);                      
-                    try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 30) {                
+                    try UniswapRouterInterface(address(routerAddress)).swapExactETHForTokens{ value : refund1 }(0, path, to, block.timestamp + 300) {                
                     } catch {
                         payable(to).transfer(refund1);
                     }                

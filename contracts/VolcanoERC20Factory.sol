@@ -129,13 +129,13 @@ contract VolcanoERC20Factory is Ownable, VolcanoERC20FactoryInterface {
             {
                 tokenA = address(erc20);
                 tokenB = UniswapRouterInterface(routerAddress).WETH9(); 
-                sqrtPriceX96 = encodePriceSqrt(blockTokenAmount, _mintBlocksFee);
+                sqrtPriceX96 = encodePriceSqrt(_mintBlocksFee, blockTokenAmount);
             }
             else
             {
                 tokenA = UniswapRouterInterface(routerAddress).WETH9(); 
                 tokenB = address(erc20);
-                sqrtPriceX96 = encodePriceSqrt(_mintBlocksFee, blockTokenAmount);
+                sqrtPriceX96 = encodePriceSqrt(blockTokenAmount, _mintBlocksFee);				
             }
             require(sqrtPriceX96 <= type(uint160).max && sqrtPriceX96 > 0, "Value uint160");                   
             try 
